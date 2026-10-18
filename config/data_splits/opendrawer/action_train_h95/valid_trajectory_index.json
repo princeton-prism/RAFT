@@ -1,0 +1,308 @@
+{
+ "house_11": {
+  "house_11/trajectories_batch_1_of_1.h5": {
+   "traj_0": 201
+  }
+ },
+ "house_22": {
+  "house_22/trajectories_batch_1_of_1.h5": {
+   "traj_0": 201,
+   "traj_1": 201
+  }
+ },
+ "house_21": {
+  "house_21/trajectories_batch_1_of_1.h5": {
+   "traj_1": 121
+  }
+ },
+ "house_34": {
+  "house_34/trajectories_batch_1_of_1.h5": {
+   "traj_0": 121,
+   "traj_1": 188
+  }
+ },
+ "house_23": {
+  "house_23/trajectories_batch_1_of_1.h5": {
+   "traj_0": 201,
+   "traj_1": 201
+  }
+ },
+ "house_44": {
+  "house_44/trajectories_batch_1_of_1.h5": {
+   "traj_0": 201,
+   "traj_1": 201
+  }
+ },
+ "house_14": {
+  "house_14/trajectories_batch_1_of_1.h5": {
+   "traj_0": 201
+  }
+ },
+ "house_37": {
+  "house_37/trajectories_batch_1_of_1.h5": {
+   "traj_0": 201
+  }
+ },
+ "house_35": {
+  "house_35/trajectories_batch_1_of_1.h5": {
+   "traj_0": 201,
+   "traj_1": 162
+  }
+ },
+ "house_15": {
+  "house_15/trajectories_batch_1_of_1.h5": {
+   "traj_0": 129,
+   "traj_1": 201
+  }
+ },
+ "house_4": {
+  "house_4/trajectories_batch_1_of_1.h5": {
+   "traj_0": 201,
+   "traj_1": 201
+  }
+ },
+ "house_52": {
+  "house_52/trajectories_batch_1_of_1.h5": {
+   "traj_0": 201,
+   "traj_1": 201
+  }
+ },
+ "house_30": {
+  "house_30/trajectories_batch_1_of_1.h5": {
+   "traj_0": 201,
+   "traj_1": 122
+  }
+ },
+ "house_51": {
+  "house_51/trajectories_batch_1_of_1.h5": {
+   "traj_0": 108
+  }
+ },
+ "house_10": {
+  "house_10/trajectories_batch_1_of_1.h5": {
+   "traj_0": 137,
+   "traj_1": 201
+  }
+ },
+ "house_25": {
+  "house_25/trajectories_batch_1_of_1.h5": {
+   "traj_0": 201,
+   "traj_1": 201
+  }
+ },
+ "house_31": {
+  "house_31/trajectories_batch_1_of_1.h5": {
+   "traj_0": 201,
+   "traj_1": 175
+  }
+ },
+ "house_43": {
+  "house_43/trajectories_batch_1_of_1.h5": {
+   "traj_0": 201,
+   "traj_1": 201
+  }
+ },
+ "house_32": {
+  "house_32/trajectories_batch_1_of_1.h5": {
+   "traj_0": 201,
+   "traj_1": 201
+  }
+ },
+ "house_5": {
+  "house_5/trajectories_batch_1_of_1.h5": {
+   "traj_0": 201,
+   "traj_1": 201
+  }
+ },
+ "house_8": {
+  "house_8/trajectories_batch_1_of_1.h5": {
+   "traj_0": 158,
+   "traj_1": 184
+  }
+ },
+ "house_1": {
+  "house_1/trajectories_batch_1_of_1.h5": {
+   "traj_0": 189
+  }
+ },
+ "house_50": {
+  "house_50/trajectories_batch_1_of_1.h5": {
+   "traj_0": 194,
+   "traj_1": 201
+  }
+ },
+ "house_49": {
+  "house_49/trajectories_batch_1_of_1.h5": {
+   "traj_0": 201
+  }
+ },
+ "house_17": {
+  "house_17/trajectories_batch_1_of_1.h5": {
+   "traj_0": 201,
+   "traj_1": 201
+  }
+ },
+ "house_47": {
+  "house_47/trajectories_batch_1_of_1.h5": {
+   "traj_0": 201,
+   "traj_1": 201
+  }
+ },
+ "house_18": {
+  "house_18/trajectories_batch_1_of_1.h5": {
+   "traj_0": 141,
+   "traj_1": 201
+  }
+ },
+ "house_24": {
+  "house_24/trajectories_batch_1_of_1.h5": {
+   "traj_0": 127,
+   "traj_1": 201
+  }
+ },
+ "house_2": {
+  "house_2/trajectories_batch_1_of_1.h5": {
+   "traj_1": 181
+  }
+ },
+ "house_53": {
+  "house_53/trajectories_batch_1_of_1.h5": {
+   "traj_0": 201,
+   "traj_1": 201
+  }
+ },
+ "house_13": {
+  "house_13/trajectories_batch_1_of_1.h5": {
+   "traj_0": 175,
+   "traj_1": 201
+  }
+ },
+ "house_7": {
+  "house_7/trajectories_batch_1_of_1.h5": {
+   "traj_0": 201,
+   "traj_1": 163
+  }
+ },
+ "house_46": {
+  "house_46/trajectories_batch_1_of_1.h5": {
+   "traj_0": 201,
+   "traj_1": 201
+  }
+ },
+ "house_9": {
+  "house_9/trajectories_batch_1_of_1.h5": {
+   "traj_0": 111,
+   "traj_1": 201
+  }
+ },
+ "house_42": {
+  "house_42/trajectories_batch_1_of_1.h5": {
+   "traj_0": 157,
+   "traj_1": 180
+  }
+ },
+ "house_48": {
+  "house_48/trajectories_batch_1_of_1.h5": {
+   "traj_0": 153,
+   "traj_1": 201
+  }
+ },
+ "house_39": {
+  "house_39/trajectories_batch_1_of_1.h5": {
+   "traj_0": 201,
+   "traj_1": 174
+  }
+ },
+ "house_27": {
+  "house_27/trajectories_batch_1_of_1.h5": {
+   "traj_1": 140
+  }
+ },
+ "house_33": {
+  "house_33/trajectories_batch_1_of_1.h5": {
+   "traj_0": 199,
+   "traj_1": 201
+  }
+ },
+ "house_29": {
+  "house_29/trajectories_batch_1_of_1.h5": {
+   "traj_0": 201,
+   "traj_1": 201
+  }
+ },
+ "house_19": {
+  "house_19/trajectories_batch_1_of_1.h5": {
+   "traj_1": 121
+  }
+ },
+ "house_41": {
+  "house_41/trajectories_batch_1_of_1.h5": {
+   "traj_0": 201,
+   "traj_1": 201
+  }
+ },
+ "house_12": {
+  "house_12/trajectories_batch_1_of_1.h5": {
+   "traj_0": 201
+  }
+ },
+ "house_3": {
+  "house_3/trajectories_batch_1_of_1.h5": {
+   "traj_0": 201,
+   "traj_1": 122
+  }
+ },
+ "house_26": {
+  "house_26/trajectories_batch_1_of_1.h5": {
+   "traj_0": 201,
+   "traj_1": 195
+  }
+ },
+ "house_45": {
+  "house_45/trajectories_batch_1_of_1.h5": {
+   "traj_1": 191
+  }
+ },
+ "house_16": {
+  "house_16/trajectories_batch_1_of_1.h5": {
+   "traj_0": 187,
+   "traj_1": 143
+  }
+ },
+ "house_0": {
+  "house_0/trajectories_batch_1_of_1.h5": {
+   "traj_0": 166,
+   "traj_1": 201
+  }
+ },
+ "house_40": {
+  "house_40/trajectories_batch_1_of_1.h5": {
+   "traj_0": 161,
+   "traj_1": 201
+  }
+ },
+ "house_28": {
+  "house_28/trajectories_batch_1_of_1.h5": {
+   "traj_0": 201,
+   "traj_1": 172
+  }
+ },
+ "house_36": {
+  "house_36/trajectories_batch_1_of_1.h5": {
+   "traj_0": 125,
+   "traj_1": 187
+  }
+ },
+ "house_6": {
+  "house_6/trajectories_batch_1_of_1.h5": {
+   "traj_0": 137,
+   "traj_1": 198
+  }
+ },
+ "house_20": {
+  "house_20/trajectories_batch_1_of_1.h5": {
+   "traj_0": 191,
+   "traj_1": 152
+  }
+ }
+}

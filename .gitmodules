@@ -1,0 +1,3 @@
+[submodule "molmospaces"]
+	path = molmospaces
+	url = https://github.com/allenai/molmospaces.git

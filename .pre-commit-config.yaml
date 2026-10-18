@@ -1,0 +1,14 @@
+exclude: "^(molmospaces/|config/benchmarks/|config/data_splits/|scripts/molmospaces_raft.patch|uv.lock)"
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: check-added-large-files
+      - id: check-ast
+      - id: check-case-conflict
+      - id: check-merge-conflict
+      - id: check-toml
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: trailing-whitespace

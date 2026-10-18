@@ -1,0 +1,62 @@
+{
+ "house_51": {
+  "house_51/trajectories_batch_1_of_1.h5": {
+   "traj_1": 201
+  }
+ },
+ "house_21": {
+  "house_21/trajectories_batch_1_of_1.h5": {
+   "traj_0": 201
+  }
+ },
+ "house_45": {
+  "house_45/trajectories_batch_1_of_1.h5": {
+   "traj_0": 171
+  }
+ },
+ "house_27": {
+  "house_27/trajectories_batch_1_of_1.h5": {
+   "traj_0": 116
+  }
+ },
+ "house_19": {
+  "house_19/trajectories_batch_1_of_1.h5": {
+   "traj_0": 201
+  }
+ },
+ "house_49": {
+  "house_49/trajectories_batch_1_of_1.h5": {
+   "traj_1": 111
+  }
+ },
+ "house_37": {
+  "house_37/trajectories_batch_1_of_1.h5": {
+   "traj_1": 201
+  }
+ },
+ "house_1": {
+  "house_1/trajectories_batch_1_of_1.h5": {
+   "traj_1": 150
+  }
+ },
+ "house_2": {
+  "house_2/trajectories_batch_1_of_1.h5": {
+   "traj_0": 201
+  }
+ },
+ "house_38": {
+  "house_38/trajectories_batch_1_of_1.h5": {
+   "traj_0": 160
+  }
+ },
+ "house_14": {
+  "house_14/trajectories_batch_1_of_1.h5": {
+   "traj_1": 201
+  }
+ },
+ "house_11": {
+  "house_11/trajectories_batch_1_of_1.h5": {
+   "traj_1": 201
+  }
+ }
+}

@@ -1,0 +1,31 @@
+{
+  "description": "JSON benchmark from _stage",
+  "created_at": "2026-07-25T14:59:23.343028",
+  "source_datagen_path": "benchmarks/franka_open_id/_stage",
+  "num_episodes": 106,
+  "num_houses": 54,
+  "task_cls_counts": {
+    "molmo_spaces.tasks.opening_tasks.OpeningTask": 106
+  },
+  "object_category_counts": {
+    "cabinet": 56,
+    "drawer": 36,
+    "oven": 5,
+    "dishwasher": 4,
+    "refrigerator": 4,
+    "microwaveoven": 1
+  },
+  "robot_counts": {
+    "franka_droid": 106
+  },
+  "episode_length_stats": {
+    "min": 108.0,
+    "max": 201.0,
+    "mean": 182.1320754716981,
+    "median": 201.0
+  },
+  "house_counts": null,
+  "camera_system_class": "FrankaOmniPurposeCameraSystem",
+  "source_data_date": null,
+  "benchmark_created_date": "2026-07-25"
+}

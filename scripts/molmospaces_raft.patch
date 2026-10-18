@@ -1,0 +1,638 @@
+diff -ruN a/molmo_spaces/configs/task_sampler_configs.py b/molmo_spaces/configs/task_sampler_configs.py
+--- a/molmo_spaces/configs/task_sampler_configs.py	2026-03-27 11:03:49.000000000 -0400
++++ b/molmo_spaces/configs/task_sampler_configs.py	2026-10-18 13:42:00.743192000 -0400
+@@ -38,6 +38,11 @@
+     # Asset blacklist: after this many failures for a single asset, skip it for the rest of the run
+     max_asset_failures: int = 10
+ 
++    # Episode-level sharding within a house (ParallelRolloutRunner subclasses that opt in via
++    # supports_episode_sharding, e.g. JsonEvalRunner). None = auto: split each house's episodes
++    # across ceil(num_workers / num_houses) shards when houses < num_workers, else 1 (no-op).
++    episode_shards_per_house: int | None = None
++
+     # Robot placement visibility checking
+     # NOTE: Disabled by default for performance - visibility checking renders segmentation
+     # frames which is expensive. Enable only if you have cameras with visibility_constraints.
+diff -ruN a/molmo_spaces/data_generation/pipeline.py b/molmo_spaces/data_generation/pipeline.py
+--- a/molmo_spaces/data_generation/pipeline.py	2026-03-27 11:03:49.000000000 -0400
++++ b/molmo_spaces/data_generation/pipeline.py	2026-10-18 13:42:00.763546000 -0400
+@@ -181,7 +181,7 @@
+ 
+ def save_house_trajectories(
+     worker_logger,
+-    house_raw_histories: list,
++    house_trajectory_data: list,
+     house_output_dir: Path,
+     exp_config: "MlSpacesExpConfig",
+     batch_suffix: str,
+@@ -190,11 +190,17 @@
+     total_batches: int | None = None,
+ ) -> None:
+     """
+-    Batch and save trajectory data for a house.
++    Save already-prepared trajectory data for a house.
++
++    Episodes are prepared (videos offloaded to disk, observations batched) eagerly
++    in process_single_house as each rollout finishes, so by the time we reach here
++    the heavy raw image histories are already gone and only lightweight batched
++    tensors remain. This avoids buffering full image histories for an entire house.
+ 
+     Args:
+         worker_logger: Logger instance
+-        house_raw_histories: List of episode info dicts with 'history' and 'sensor_suite'
++        house_trajectory_data: List of prepared episode dicts (output of
++            prepare_episode_for_saving)
+         house_output_dir: Output directory path
+         exp_config: Experiment configuration
+         batch_suffix: Suffix for batch file naming
+@@ -202,14 +208,14 @@
+         batch_num: Batch number for logging
+         total_batches: Total batches for logging
+     """
+-    if not house_raw_histories:
++    if not house_trajectory_data:
+         worker_logger.warning(f"No trajectory data to save for {house_output_dir.name}")
+         return
+ 
+     batch_info = f" batch {batch_num}/{total_batches}" if batch_num is not None else ""
+     worker_logger.info(
+-        f"Batching and saving trajectory data for {house_output_dir.name}{batch_info}: "
+-        f"{len(house_raw_histories)} episodes"
++        f"Saving trajectory data for {house_output_dir.name}{batch_info}: "
++        f"{len(house_trajectory_data)} episodes"
+     )
+ 
+     os.makedirs(house_output_dir, exist_ok=True)
+@@ -217,29 +223,6 @@
+     try:
+         t_start = time.perf_counter()
+         if datagen_profiler is not None:
+-            datagen_profiler.start("save_batch_prep")
+-
+-        house_trajectory_data = []
+-        for idx, episode_info in enumerate(house_raw_histories):
+-            prepared_episode = prepare_episode_for_saving(
+-                episode_info["history"],
+-                episode_info["sensor_suite"],
+-                fps=exp_config.fps,
+-                save_dir=house_output_dir,
+-                episode_idx=idx,
+-                save_file_suffix=batch_suffix,
+-            )
+-            if prepared_episode is not None:
+-                house_trajectory_data.append(prepared_episode)
+-            del episode_info["history"]
+-
+-        t_batch = time.perf_counter() - t_start
+-        if datagen_profiler is not None:
+-            datagen_profiler.end("save_batch_prep")
+-        worker_logger.debug(f"Batched {len(house_trajectory_data)} episodes in {t_batch:.2f}s")
+-
+-        t_save_start = time.perf_counter()
+-        if datagen_profiler is not None:
+             datagen_profiler.start("save_trajectories")
+         save_trajectories(
+             house_trajectory_data,
+@@ -251,12 +234,10 @@
+         )
+         if datagen_profiler is not None:
+             datagen_profiler.end("save_trajectories")
+-        t_save = time.perf_counter() - t_save_start
+ 
+         total_time = time.perf_counter() - t_start
+         worker_logger.info(
+-            f"Successfully saved trajectory data for {house_output_dir.name} in {total_time:.2f}s "
+-            f"(batch: {t_batch:.2f}s, save: {t_save:.2f}s)"
++            f"Successfully saved trajectory data for {house_output_dir.name} in {total_time:.2f}s"
+         )
+ 
+         del house_trajectory_data
+@@ -405,19 +386,20 @@
+                     )
+                     break
+ 
+-                # Get next house to process atomically
++                # Get next work unit (house, episode-shard) to process atomically
+                 with counter_lock:
+                     if house_counter.value >= len(house_indices):
+-                        break  # No more houses to process
++                        break  # No more work units to process
+                     house_idx = house_counter.value
+-                    current_house_id = house_indices[house_idx]
++                    current_house_id, shard_idx, num_shards = house_indices[house_idx]
+                     house_counter.value += 1
+ 
+                 worker_logger.info(
+-                    f"Worker {worker_id} starting house {current_house_id} (index {house_idx}/{len(house_indices)})"
++                    f"Worker {worker_id} starting house {current_house_id} "
++                    f"shard {shard_idx + 1}/{num_shards} (work unit {house_idx}/{len(house_indices)})"
+                 )
+ 
+-                # Process this house
++                # Process this house (or this worker's episode shard of it)
+                 house_success_count, house_total_count, irrecoverable = (
+                     runner_class.process_single_house(
+                         worker_id,
+@@ -433,6 +415,10 @@
+                         filter_for_successful_trajectories=filter_for_successful_trajectories,
+                         runner_class=runner_class,
+                         datagen_profiler=datagen_profiler,
++                        batch_num=shard_idx + 1 if num_shards > 1 else None,
++                        total_batches=num_shards if num_shards > 1 else None,
++                        episode_shard_idx=shard_idx,
++                        episode_shard_count=num_shards,
+                     )
+                 )
+ 
+@@ -505,6 +491,12 @@
+             runner.run()  # Workers will use CustomRolloutRunner.run_single_rollout!
+     """
+ 
++    # Subclasses that process a fixed, non-retrying episode list per house (e.g. closed-loop
++    # eval via JsonEvalRunner) can opt into splitting one house's episodes across multiple
++    # worker slots. Datagen's should_stop_early/retry semantics don't compose with sharding a
++    # fixed range, so this stays off unless a subclass declares support.
++    supports_episode_sharding: bool = False
++
+     def __init__(self, exp_config: MlSpacesExpConfig) -> None:
+         """
+         Initialize the parallel rollout runner.
+@@ -528,6 +520,27 @@
+ 
+         self.total_houses = len(self.house_indices)
+ 
++        # Episode-level sharding: with fewer houses than workers, house-level parallelism alone
++        # leaves workers idle. When the runner class opts in, split each house's episode range
++        # into shards so several workers can process the same house concurrently, each writing
++        # its own batch_N_of_M output file.
++        self.episode_shards_per_house = 1
++        if type(self).supports_episode_sharding:
++            requested_shards = exp_config.task_sampler_config.episode_shards_per_house
++            if requested_shards is None and self.total_houses < exp_config.num_workers:
++                requested_shards = -(-exp_config.num_workers // self.total_houses)  # ceil div
++            if requested_shards:
++                self.episode_shards_per_house = max(
++                    1, min(requested_shards, self.samples_per_house)
++                )
++
++        # Flattened work queue that workers pull from: (house_id, shard_idx, num_shards).
++        self.work_units = [
++            (house_id, shard_idx, self.episode_shards_per_house)
++            for house_id in self.house_indices
++            for shard_idx in range(self.episode_shards_per_house)
++        ]
++
+         # Failure tracking limits
+         self.max_allowed_sequential_task_sampler_failures = (
+             exp_config.task_sampler_config.max_allowed_sequential_task_sampler_failures
+@@ -798,6 +811,8 @@
+         batch_num: int | None = None,
+         total_batches: int | None = None,
+         datagen_profiler: DatagenProfiler | None = None,
++        episode_shard_idx: int = 0,
++        episode_shard_count: int = 1,
+     ) -> tuple[int, int, bool]:
+         """
+         Process all episodes for a single house using customizable hooks.
+@@ -864,7 +879,18 @@
+             episode_specs, samples_per_house, exp_config
+         )
+ 
+-        # Collect raw history data for this house
++        # When sharding a house's episodes across multiple workers, restrict this call to a
++        # contiguous sub-range of [0, max_attempts). Shards beyond the available episode count
++        # (e.g. a house with fewer episodes than shards) simply get an empty range and no-op.
++        episode_start = 0
++        if episode_shard_count > 1:
++            chunk = -(-max_attempts // episode_shard_count)  # ceil div
++            episode_start = min(episode_shard_idx * chunk, max_attempts)
++            max_attempts = min(episode_start + chunk, max_attempts)
++
++        # Collect prepared (video-offloaded, batched) trajectory data for this house.
++        # Episodes are prepared eagerly per-rollout below to avoid buffering raw image
++        # histories for the whole house.
+         house_raw_histories = []
+         house_debug_raw_histories = []
+ 
+@@ -874,7 +900,7 @@
+         viewer = None
+ 
+         # While loop with explicit index - allows subclasses to customize iteration
+-        episode_idx = 0
++        episode_idx = episode_start
+         while episode_idx < max_attempts:
+             # Check early stop condition (e.g., enough successes for datagen)
+             should_stop = runner_class.should_stop_early(
+@@ -1037,21 +1063,29 @@
+                         should_save_debug = not should_save and random.random() < 0.01
+ 
+                         if should_save or should_save_debug:
+-                            episode_info = {
+-                                "history": history,
+-                                "sensor_suite": task.sensor_suite,
+-                                "success": success,
+-                                "seed": episode_seed,
+-                            }
+-                            if should_save:
+-                                house_raw_histories.append(episode_info)
+-                            elif should_save_debug:
+-                                house_debug_raw_histories.append(episode_info)
++                            # Prepare (and offload videos for) this episode immediately
++                            # rather than buffering the raw image history for the entire
++                            # house: prepare_episode_for_saving writes the frames out as MP4s
++                            # and keeps only lightweight batched tensors in the buffer.
++                            target_dir = house_output_dir if should_save else house_debug_dir
++                            target_buffer = (
++                                house_raw_histories if should_save else house_debug_raw_histories
++                            )
++                            prepared_episode = prepare_episode_for_saving(
++                                history,
++                                task.sensor_suite,
++                                fps=exp_config.fps,
++                                save_dir=target_dir,
++                                episode_idx=len(target_buffer),
++                                save_file_suffix=batch_suffix,
++                            )
++                            if prepared_episode is not None:
++                                target_buffer.append(prepared_episode)
++                            if should_save_debug:
+                                 worker_logger.info(
+                                     f"Queueing failed trajectory for debug (seed: {episode_seed})"
+                                 )
+-                        else:
+-                            del history
++                        del history
+ 
+                         # Update house counters
+                         house_total_count += 1
+@@ -1191,10 +1225,16 @@
+             tuple: (success_count, total_count)
+         """
+         total_expected_episodes = self.total_houses * self.samples_per_house
++        shard_msg = (
++            f", {self.episode_shards_per_house} episode-shards/house"
++            if self.episode_shards_per_house > 1
++            else ""
++        )
+         self.logger.info(
+             f"Starting house-by-house rollout of {self.total_houses} houses "
+             f"with {self.samples_per_house} episodes each ({total_expected_episodes} total episodes) "
+-            f"using {self.config.num_workers} worker processes"
++            f"using {self.config.num_workers} worker processes{shard_msg} "
++            f"({len(self.work_units)} work units)"
+         )
+ 
+         # make a copy of the config in the output directory
+@@ -1214,7 +1254,7 @@
+                     args=(
+                         worker_id,
+                         self.config,
+-                        self.house_indices,
++                        self.work_units,
+                         self.samples_per_house,
+                         self.shutdown_event,
+                         self.counter_lock,
+@@ -1254,7 +1294,7 @@
+                         # Calculate metrics
+                         success_rate = success / total if total > 0 else 0.0
+                         episodes_per_second = total / elapsed_time if elapsed_time > 0 else 0.0
+-                        completion_percentage = (completed + skipped) / self.total_houses * 100
++                        completion_percentage = (completed + skipped) / len(self.work_units) * 100
+ 
+                         # Log to WandB
+                         wandb.log(
+@@ -1272,7 +1312,7 @@
+                             }
+                         )
+                         self.logger.info(
+-                            f"Progress: {completed}/{self.total_houses} houses completed "
++                            f"Progress: {completed}/{len(self.work_units)} work units completed "
+                             f"({completion_percentage:.1f}%), {success}/{total} successful episodes "
+                             f"({success_rate * 100:.1f}%), {active} workers active"
+                         )
+@@ -1294,7 +1334,7 @@
+             house_processing_worker(
+                 worker_id=0,
+                 exp_config=self.config,
+-                house_indices=self.house_indices,
++                house_indices=self.work_units,
+                 samples_per_house=self.samples_per_house,
+                 shutdown_event=self.shutdown_event,
+                 counter_lock=self.counter_lock,
+diff -ruN a/molmo_spaces/evaluation/benchmark_schema.py b/molmo_spaces/evaluation/benchmark_schema.py
+--- a/molmo_spaces/evaluation/benchmark_schema.py	2026-03-27 11:03:49.000000000 -0400
++++ b/molmo_spaces/evaluation/benchmark_schema.py	2026-10-18 13:41:43.711330000 -0400
+@@ -170,7 +170,7 @@
+     articulation_object_name: str | None = None
+     joint_name: str
+     joint_index: int = 0
+-    joint_start_position: float
++    joint_start_position: float | list[float]
+     joint_goal_position: float | None = None
+ 
+     # Success criteria
+diff -ruN a/molmo_spaces/evaluation/eval_main.py b/molmo_spaces/evaluation/eval_main.py
+--- a/molmo_spaces/evaluation/eval_main.py	2026-03-27 11:03:49.000000000 -0400
++++ b/molmo_spaces/evaluation/eval_main.py	2026-10-18 13:42:09.889469000 -0400
+@@ -263,6 +263,22 @@
+         help="The natural language name for the custom object (e.g., 'lemon', 'cup'). "
+         "If not provided, will attempt to extract from the object path but could be incorrect.",
+     )
++    parser.add_argument(
++        "--randomize_lighting",
++        action="store_true",
++        help="Enable lighting randomization for domain randomization evaluation.",
++    )
++    parser.add_argument(
++        "--randomize_textures",
++        action="store_true",
++        help="Enable texture randomization for domain randomization evaluation.",
++    )
++    parser.add_argument(
++        "--randomize_textures_all",
++        action="store_true",
++        help="Enable UNRESTRICTED texture randomization (all objects, not just by-category "
++             "swaps) for a stronger visual/object-appearance OOD evaluation.",
++    )
+     return parser.parse_args()
+ 
+ 
+@@ -357,6 +373,9 @@
+     add_custom_object: bool = False
+     custom_object_path: str | Path | None = None
+     custom_object_name: str | None = None
++    randomize_lighting: bool = False
++    randomize_textures: bool = False
++    randomize_textures_all: bool = False
+ 
+ 
+ def create_eval_config(
+@@ -448,6 +467,9 @@
+     add_custom_object: bool = False,
+     custom_object_path: str | Path | None = None,
+     custom_object_name: str | None = None,
++    randomize_lighting: bool = False,
++    randomize_textures: bool = False,
++    randomize_textures_all: bool = False,
+ ) -> EvaluationResults:
+     """Run evaluation on a JSON benchmark programmatically.
+ 
+@@ -618,6 +640,9 @@
+         add_custom_object=add_custom_object,
+         custom_object_path=custom_object_path,
+         custom_object_name=custom_object_name,
++        randomize_lighting=randomize_lighting,
++        randomize_textures=randomize_textures,
++        randomize_textures_all=randomize_textures_all,
+     )
+     JsonEvalRunner.adjust_robot(exp_config)
+ 
+@@ -738,6 +763,9 @@
+         add_custom_object=args.add_custom_object,
+         custom_object_path=args.custom_object_path,
+         custom_object_name=args.custom_object_name,
++        randomize_lighting=args.randomize_lighting,
++        randomize_textures=args.randomize_textures,
++        randomize_textures_all=args.randomize_textures_all,
+     )
+ 
+     log.info(f"Evaluation complete: {results.success_count}/{results.total_count} successful")
+diff -ruN a/molmo_spaces/evaluation/json_eval_runner.py b/molmo_spaces/evaluation/json_eval_runner.py
+--- a/molmo_spaces/evaluation/json_eval_runner.py	2026-03-27 11:03:49.000000000 -0400
++++ b/molmo_spaces/evaluation/json_eval_runner.py	2026-10-18 13:41:43.696133000 -0400
+@@ -51,6 +51,11 @@
+     customizes behavior by overriding hook methods.
+     """
+ 
++    # get_max_episode_attempts below processes each house's fixed episode list exactly once,
++    # with no retry/should_stop_early semantics — safe to split across multiple worker shards
++    # when a benchmark has fewer houses than num_workers (see ParallelRolloutRunner.__init__).
++    supports_episode_sharding = True
++
+     @staticmethod
+     def patch_config(
+         exp_config: MlSpacesExpConfig,
+@@ -58,6 +63,9 @@
+         add_custom_object: bool = False,
+         custom_object_path: str | Path | None = None,
+         custom_object_name: str | None = None,
++        randomize_lighting: bool = False,
++        randomize_textures: bool = False,
++        randomize_textures_all: bool = False,
+     ) -> MlSpacesExpConfig:
+         """Patch evaluation config with runtime evaluation-specific parameters.
+ 
+@@ -92,8 +100,18 @@
+             add_custom_object=add_custom_object,
+             custom_object_path=custom_object_path,
+             custom_object_name=custom_object_name,
++            randomize_lighting=randomize_lighting,
++            randomize_textures=randomize_textures,
++            randomize_textures_all=randomize_textures_all,
+         )
+ 
++        # Propagate domain randomization flags to task_sampler_config so that
++        # the base class randomizers (LightingRandomizer, TextureRandomizer) are
++        # created during init_scene and invoked during randomize_scene.
++        exp_config.task_sampler_config.randomize_lighting = randomize_lighting
++        exp_config.task_sampler_config.randomize_textures = randomize_textures
++        exp_config.task_sampler_config.randomize_textures_all = randomize_textures_all
++
+         return exp_config
+ 
+     @staticmethod
+diff -ruN a/molmo_spaces/molmo_spaces_constants.py b/molmo_spaces/molmo_spaces_constants.py
+--- a/molmo_spaces/molmo_spaces_constants.py	2026-03-27 11:03:49.000000000 -0400
++++ b/molmo_spaces/molmo_spaces_constants.py	2026-10-18 13:41:43.719690000 -0400
+@@ -112,7 +112,8 @@
+         "thormap": "20251209",
+     },
+     benchmarks={
+-        "molmospaces-bench-v2": "20260325_1",
++        "molmospaces-bench-v1": "20260408",
++        "molmospaces-bench-v2": "20240407",
+     },
+ )
+ 
+diff -ruN a/molmo_spaces/tasks/json_eval_task_sampler.py b/molmo_spaces/tasks/json_eval_task_sampler.py
+--- a/molmo_spaces/tasks/json_eval_task_sampler.py	2026-03-27 11:03:49.000000000 -0400
++++ b/molmo_spaces/tasks/json_eval_task_sampler.py	2026-10-18 13:41:43.701563000 -0400
+@@ -261,6 +261,9 @@
+         # Cache the task class for _sample_task
+         self._task_cls: type | None = None
+ 
++        # Will be populated by randomize_scene if domain randomization is active
++        self._domain_randomization_state: dict = {}
++
+     def _validate_episode_spec(self, spec: EpisodeSpec) -> None:
+         """Validate that all required fields are present in the episode spec."""
+         # Validate scene identification
+@@ -572,6 +575,11 @@
+         the exact configuration from the episode spec:
+         - Robot joint positions from robot.init_qpos
+         - Object poses from scene_modifications.object_poses
++
++        When --randomize_lighting or --randomize_textures is enabled via
++        eval CLI flags, calls the base class randomize_scene to apply
++        visual domain randomization and records the resulting state for
++        reproducibility.
+         """
+         # Log episode spec details for debugging
+         log.info(
+@@ -587,8 +595,10 @@
+         )
+ 
+         # Call parent for lighting/texture randomization if configured
+-        # TODO open question from RMH: hardcode disable this? Feel like yes, leaving in place as a comment.
+-        # super().randomize_scene(env, robot_view)
++        do_lighting = self.config.task_sampler_config.randomize_lighting
++        do_textures = self.config.task_sampler_config.randomize_textures
++        if do_lighting or do_textures:
++            super().randomize_scene(env, robot_view)
+ 
+         model = env.current_model
+         data = env.current_data
+@@ -638,6 +648,10 @@
+             if "head" in robot.robot_view.move_group_ids():
+                 head_mg = robot.robot_view.get_move_group("head")
+                 head_mg.ctrl = head_mg.noop_ctrl
++
++        # Capture domain randomization state for reproducibility
++        self._domain_randomization_state = self._capture_domain_randomization_state(env)
++
+         log.info("Scene setup from episode spec completed.")
+ 
+     def _randomize_colors(self, env: CPUMujocoEnv) -> None:
+@@ -660,6 +674,57 @@
+                     model.geom_rgba[geom_id] = color_rgba
+                 log.info(f"Colored object {object_name}")
+ 
++    def _capture_domain_randomization_state(self, env: CPUMujocoEnv) -> dict:
++        """Capture the current domain randomization state for reproducibility.
++
++        Records the seed, which randomizations were active, and the resulting
++        per-light properties so that the exact visual state can be reproduced
++        or analysed from the saved evaluation results.
++
++        Returns:
++            Dict describing the randomization state. Empty when no
++            randomization was applied.
++        """
++        do_lighting = self.config.task_sampler_config.randomize_lighting
++        do_textures = self.config.task_sampler_config.randomize_textures
++
++        if not do_lighting and not do_textures:
++            return {}
++
++        # Seed that was used to derive the per-randomizer seeds
++        base_seed: int | None = None
++        if self.current_seed is not None:
++            base_seed = self.current_seed + 1
++        state: dict = {
++            "enabled": True,
++            "base_seed": base_seed,
++            "episode_seed": self.current_seed,
++            "randomize_lighting": do_lighting,
++            "randomize_textures": do_textures,
++        }
++
++        # Capture post-randomization lighting properties from the MuJoCo model
++        if do_lighting:
++            model = env.current_model
++            lights = []
++            for i in range(model.nlight):
++                lights.append({
++                    "id": i,
++                    "pos": model.light_pos[i].tolist(),
++                    "dir": model.light_dir[i].tolist(),
++                    "specular": model.light_specular[i].tolist(),
++                    "ambient": model.light_ambient[i].tolist(),
++                    "diffuse": model.light_diffuse[i].tolist(),
++                    "active": int(model.light_active[i]),
++                })
++            state["lighting_seed"] = base_seed
++            state["lights"] = lights
++
++        if do_textures:
++            state["texture_seed"] = (base_seed + 1) if base_seed is not None else None
++
++        return state
++
+     def setup_cameras(self, env: CPUMujocoEnv, deterministic_only: bool = False) -> None:
+         """Set up cameras for this eval episode.
+ 
+@@ -867,15 +932,25 @@
+         task_cls = self._get_task_class()
+         task = task_cls(env, self.config)
+ 
+-        # TODO(max): hack to overide the use of task.get_task_description() in PickAndPlaceColorTask with the episode_spec language.task_description
+-        from molmo_spaces.tasks.pick_and_place_color_task import PickAndPlaceColorTask
++        task_description = self.episode_spec.language.task_description
++
++        def get_task_description(self, _td=task_description) -> str:
++            return _td
+ 
+-        if isinstance(task, PickAndPlaceColorTask):
+-            task_description = self.episode_spec.language.task_description
++        task.get_task_description = types.MethodType(get_task_description, task)
+ 
+-            def get_task_description(self, _td=task_description) -> str:
+-                return _td
++        # Inject domain randomization state into obs_scene for reproducibility
++        if self._domain_randomization_state:
++            dr_state = self._domain_randomization_state
++            original_get_obs_scene = task.get_obs_scene
++
++            def get_obs_scene_with_dr(
++                _original=original_get_obs_scene, _dr=dr_state
++            ) -> dict:
++                obs = _original()
++                obs["domain_randomization"] = _dr
++                return obs
+ 
+-            task.get_task_description = types.MethodType(get_task_description, task)
++            task.get_obs_scene = get_obs_scene_with_dr
+ 
+         return task
+diff -ruN a/molmo_spaces/tasks/opening_tasks.py b/molmo_spaces/tasks/opening_tasks.py
+--- a/molmo_spaces/tasks/opening_tasks.py	2026-03-27 11:03:49.000000000 -0400
++++ b/molmo_spaces/tasks/opening_tasks.py	2026-10-18 13:41:43.706741000 -0400
+@@ -89,8 +89,6 @@
+         """
+         rewards_envs = np.zeros(self._env.n_batch)
+ 
+-        self.config.task_type = "open"
+-
+         if self.config.task_type == "open":
+             for n in range(self._env.n_batch):
+                 reward_cand = []
+diff -ruN a/molmo_spaces/utils/eval_utils.py b/molmo_spaces/utils/eval_utils.py
+--- a/molmo_spaces/utils/eval_utils.py	2026-03-27 11:03:49.000000000 -0400
++++ b/molmo_spaces/utils/eval_utils.py	2026-10-18 13:41:43.715540000 -0400
+@@ -509,12 +509,18 @@
+                     # Extract task description from obs_scene
+                     task_description = None
+                     object_name = None
++                    metadata: dict = {}
+                     if "obs_scene" in traj_group:
+                         obs_scene = parse_obs_scene(traj_group["obs_scene"][()])
+                         task_description = obs_scene.get("task_description") or obs_scene.get(
+                             "text"
+                         )
+                         object_name = obs_scene.get("object_name")
++                        # Extract domain randomization state if present
++                        if "domain_randomization" in obs_scene:
++                            metadata["domain_randomization"] = obs_scene[
++                                "domain_randomization"
++                            ]
+ 
+                     results.append(
+                         EpisodeResult(
+@@ -526,6 +532,7 @@
+                             object_name=object_name,
+                             data_file_path=hdf5_path,
+                             oracle_done=oracle_done,
++                            metadata=metadata,
+                         )
+                     )
+ 

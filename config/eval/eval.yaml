@@ -1,0 +1,18 @@
+defaults:
+  - policy: ???
+
+seed: 42
+num_workers: 20
+n_videos: 40
+horizon: 40.0
+min_success_duration: 0.5
+benchmark: ???
+
+# Domain randomization for OOD evaluation (same house/episodes, perturbed visuals).
+# randomize_lighting also perturbs light position/direction/specular/ambient/diffuse.
+randomize_lighting: false
+randomize_textures: false
+
+filament:
+  enabled: false
+  light_intensity: 12000

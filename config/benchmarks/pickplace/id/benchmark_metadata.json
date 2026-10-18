@@ -1,0 +1,35 @@
+{
+  "description": "JSON benchmark from bench_input",
+  "created_at": "2026-05-26T22:14:57.000755",
+  "source_datagen_path": "assets_local/experiment_output/datagen/pick_and_place_omni_v1_local/FrankaPickAndPlaceIthorFP13Generic1k/combined_all_local/bench_input",
+  "num_episodes": 106,
+  "num_houses": 1,
+  "task_cls_counts": {
+    "molmo_spaces.tasks.pick_and_place_task.PickAndPlaceTask": 106
+  },
+  "object_category_counts": {
+    "cup": 21,
+    "mug": 18,
+    "egg": 18,
+    "Irishpotato": 13,
+    "fruit": 9,
+    "knife": 9,
+    "spoon": 7,
+    "bowl": 6,
+    "fork": 4,
+    "spatula": 1
+  },
+  "robot_counts": {
+    "franka_droid": 106
+  },
+  "episode_length_stats": {
+    "min": 201.0,
+    "max": 405.0,
+    "mean": 257.27358490566036,
+    "median": 251.0
+  },
+  "house_counts": null,
+  "camera_system_class": "FrankaOmniPurposeCameraSystem",
+  "source_data_date": "2026-05-26",
+  "benchmark_created_date": "2026-05-26"
+}

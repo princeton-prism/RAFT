@@ -1,0 +1,15 @@
+defaults:
+  - cameras: sim_exo_random
+  - _self_
+
+type: pi
+action_type: jointvel
+
+model_name: ???
+model_dir: null
+checkpoints: null
+checkpoint_dir: null   # one checkpoint dir (model.safetensors + assets/); overrides model_dir/checkpoints
+use_torch: false
+buffer_length: -1
+compile_mode: max-autotune-no-cudagraphs
+max_joint_delta: 0.2
