@@ -5,8 +5,8 @@
 #   axis       benchmark    randomization            axis       benchmark   randomization
 #   id         id/          none                     id         id/         none
 #   oodlight   id/          lighting                 oodlight   id/         lighting
-#   texall     id/          all textures (no light)  oodvis     id/         lighting + textures
-#   oodobjv3   oodobj/      none (novel objects)     texall     id/         lighting + all textures
+#   texall     id/          all textures (no light)  texall     id/         all textures (no light)
+#   oodobjv3   oodobj/      none (novel objects)
 #   oodprompt  oodprompt/   none (rephrased)         oodprompt  oodprompt/  none (rephrased)
 #
 # Usage: TASK=pickplace MODEL_DIR=checkpoints/RAFT-pickplace AXIS=oodobjv3 bash scripts/eval/eval_axis.sh
@@ -27,8 +27,7 @@ case "${TASK}:${AXIS}" in
     pickplace:oodprompt)   bench=${BENCH_ROOT}/oodprompt ;;
     opendrawer:id)         ;;
     opendrawer:oodlight)   light=true; workers=4 ;;
-    opendrawer:oodvis)     light=true; tex=true ;;
-    opendrawer:texall)     light=true; tex=true; texall=true; workers=4 ;;
+    opendrawer:texall)     tex=true; texall=true; workers=4 ;;
     opendrawer:oodprompt)  bench=${BENCH_ROOT}/oodprompt; workers=4 ;;
     *) echo "unknown axis ${AXIS} for TASK=${TASK}" >&2; exit 2 ;;
 esac

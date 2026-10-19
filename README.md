@@ -104,7 +104,7 @@ FINETUNED=<plain-FT checkpoint dir> ALPHA=<alpha> bash scripts/baselines/retain.
 | | `oodprompt` | paraphrased task instructions |
 | `opendrawer` | `id` | nothing (held-out episodes of the training scenes) |
 | | `oodlight` | randomized lighting |
-| | `texall` | randomized  textures on all objects |
+| | `texall` | randomized textures on all objects |
 | | `oodprompt` | instructions paraphrased away from the training phrasing `Open the {X}` |
 
 Benchmarks are in `config/benchmarks/<task>/`; [scripts/eval/eval_axis.sh](scripts/eval/eval_axis.sh)

@@ -29,7 +29,7 @@ case "${TASK}" in
 esac
 case "${TASK}" in
   pickplace)  RAFT_AXES="id oodlight texall oodobjv3 oodprompt" ;;
-  opendrawer) RAFT_AXES="id oodlight oodvis texall oodprompt" ;;
+  opendrawer) RAFT_AXES="id oodlight texall oodprompt" ;;
 esac
 STAGE1_CKPT_DIR=${STAGE1_CKPT_DIR:-${CKPT_ROOT}/RAFT-stage1-${TASK}}
 RAFT_CKPT_DIR=${RAFT_CKPT_DIR:-${CKPT_ROOT}/RAFT-${TASK}}
