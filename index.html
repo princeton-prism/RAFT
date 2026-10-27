@@ -1,0 +1,671 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>RAFT Project Page</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css?family=Google+Sans:400,500,700|Noto+Sans:400,600,700&display=swap" rel="stylesheet">
+<style>
+  /* Research-project-page look (Nerfies family): white page, Google Sans headings, Noto Sans body,
+     centred section titles, ~860px text column, grey rounded panels for interactive figures.
+     Deliberately single (light) theme, like the pages it follows; every color is set explicitly.
+     Chart series use the validated categorical palette (RAFT = blue, slot 1). */
+  :root {
+    color-scheme: light;
+    --bg: #ffffff; --panel: #f5f5f5; --ink: #222; --muted: #6b6b6b; --line: #e3e3e3;
+    --link: #3273dc; --author: hsl(204, 86%, 45%);
+    --s-raft: #2a78d6; --s-plain: #eb6834; --s-retain: #1baf7a; --s-delock: #eda100; --s-base: #e87ba4;
+    --head: "Google Sans", "Noto Sans", system-ui, sans-serif;
+    --body: "Noto Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 400 16.5px/1.6 var(--body); }
+  a { color: var(--link); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  :focus-visible { outline: 2px solid var(--s-raft); outline-offset: 2px; }
+  .wrap {
+    max-width: 1060px; margin: 0 auto;
+    padding-left: max(16px, env(safe-area-inset-left, 0px));
+    padding-right: max(16px, env(safe-area-inset-right, 0px));
+  }
+  .col { max-width: 860px; margin: 0 auto; }
+  section { padding-block: 44px; }
+  h2 { font: 500 30px/1.2 var(--head); text-align: center; margin: 0 0 18px; }
+  h3 { font: 500 21px/1.3 var(--head); margin: 34px 0 8px; }
+  p { margin: 0 0 12px; }
+  .just { text-align: justify; hyphens: auto; }
+  .muted { color: var(--muted); }
+  .cap { font-size: 14.5px; color: var(--muted); margin-top: 8px; }
+  .center { text-align: center; }
+
+  /* ---------- header ---------- */
+  header { padding-top: 56px; padding-bottom: 8px; text-align: center; }
+  .pub-title { font: 700 clamp(28px, 4.2vw, 42px)/1.2 var(--head); margin: 0 auto 18px; max-width: 900px; text-wrap: balance; }
+  .pub-title .name { color: var(--s-raft); }
+  .authors { font: 400 20px/1.5 var(--head); margin: 0 0 2px; }
+  .authors span { display: inline-block; margin: 0 9px; color: var(--author); }
+  .affils { font: 400 17px/1.5 var(--head); color: var(--ink); margin: 0 0 16px; }
+  .affils span { display: inline-block; margin: 0 9px; }
+  sup { font-size: 0.65em; }
+  .links { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+  .lbtn { display: inline-flex; align-items: center; gap: 7px; background: #363636; color: #fff; border-radius: 999px; padding: 7px 17px; font: 500 15px var(--head); }
+  .lbtn:hover { background: #222; text-decoration: none; }
+  .lbtn.off { background: #8a8a8a; cursor: default; }
+  .lbtn svg { width: 15px; height: 15px; fill: currentColor; }
+  .teaser { margin: 34px auto 0; max-width: 960px; }
+  .teaser video { width: 100%; display: block; border-radius: 10px; background: #000; }
+  .tldr { max-width: 860px; margin: 20px auto 0; padding: 14px 20px; background: #eef4fc; border-left: 4px solid var(--s-raft); border-radius: 8px; text-align: left !important; font: 400 18px/1.55 var(--head); text-align: center; }
+  .tldr b { color: var(--s-raft); font-weight: 700; }
+
+  /* ---------- grey interactive panels ---------- */
+  .panel { background: var(--panel); border-radius: 10px; padding: 20px; }
+  .controls { display: flex; flex-wrap: wrap; gap: 12px 22px; align-items: center; margin-bottom: 14px; }
+  .ctrl { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .ctrl > span { font: 500 14px var(--head); color: var(--muted); }
+  .seg { display: inline-flex; flex-wrap: wrap; gap: 4px; }
+  .seg button { border: 1px solid #d5d5d5; background: #fff; color: var(--ink); font: 500 14.5px var(--head); padding: 5px 13px; border-radius: 999px; cursor: pointer; }
+  .seg button:hover { border-color: #aaa; }
+  .seg button[aria-pressed="true"] { background: #363636; border-color: #363636; color: #fff; }
+  .task { font: 500 15px var(--head); }
+
+  /* ---------- comparison ---------- */
+  .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .pair figure { margin: 0; min-width: 0; }
+  .pair video { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 8px; background: #000; display: block; }
+  .pair figcaption { font: 500 15.5px var(--head); text-align: center; margin-top: 8px; }
+  .fail { color: #c0392b; } .ok { color: var(--s-raft); }
+  .duo { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .duo figure { margin: 0; min-width: 0; }
+  .duo .vbox { position: relative; }
+  .duo video { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 8px; background: #000; display: block; }
+  .duo figure.ours video { outline: 3px solid var(--s-raft); outline-offset: -3px; }
+  .duo figcaption { font: 500 16px var(--head); text-align: center; margin-top: 8px; }
+  .duo .nav { position: absolute; top: 50%; transform: translateY(-50%); width: 36px; height: 36px; border-radius: 50%; border: 0; background: rgba(255,255,255,0.92); color: #222; font-size: 22px; line-height: 1; cursor: pointer; box-shadow: 0 1px 6px rgba(0,0,0,0.35); }
+  .duo .nav.prev { left: 8px; } .duo .nav.next { right: 8px; }
+  #cmp-grid { grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  #cmp-grid figcaption { font-size: 14.5px; }
+  @media (max-width: 760px) { #cmp-grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 560px) { .duo { grid-template-columns: 1fr; } }
+  @media (max-width: 760px) { .quad { grid-template-columns: 1fr 1fr; } }
+
+  /* ---------- figures ---------- */
+  figure { margin: 0; }
+  .fig img { width: 100%; height: auto; display: block; border-radius: 8px; }
+
+  /* ---------- charts ---------- */
+  .chart { position: relative; background: #fff; border-radius: 8px; padding: 14px 14px 8px; }
+  .chart svg { width: 100%; height: auto; display: block; overflow: visible; }
+  .chart .axis text { fill: #6b6b6b; font: 12px var(--body); }
+  .chart .tick { fill: #222; font: 500 13px var(--head); }
+  .chart .val { fill: #222; font: 700 12px var(--body); }
+  .chart .ptlbl { fill: #222; font: 500 13px var(--head); }
+  .chart .grid { stroke: #ececec; }
+  .chart .base { stroke: #9a9a9a; }
+  .legend { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 0 0 6px; }
+  .legend button { display: inline-flex; align-items: center; gap: 6px; border: 0; background: none; color: var(--ink); font: 500 14px var(--head); cursor: pointer; padding: 2px 0; }
+  .legend button[aria-pressed="false"] { color: #aaa; text-decoration: line-through; }
+  .legend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+  .legend button[aria-pressed="false"] i { opacity: 0.3; }
+  .tip { position: absolute; pointer-events: none; background: #222; color: #fff; font: 500 13px/1.35 var(--head); padding: 5px 9px; border-radius: 6px; white-space: nowrap; transform: translate(-50%, calc(-100% - 10px)); z-index: 2; }
+  .foot { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; font-size: 13px; color: var(--muted); margin-top: 4px; }
+  .tbtn { border: 0; background: none; color: var(--link); font: 500 13.5px var(--head); cursor: pointer; padding: 2px 0; }
+  .twrap { overflow-x: auto; }
+  table.data { border-collapse: collapse; width: 100%; font-size: 13.5px; font-variant-numeric: tabular-nums; margin-top: 6px; }
+  table.data th, table.data td { padding: 5px 9px; text-align: right; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  table.data th:first-child, table.data td:first-child { text-align: left; }
+  table.data thead th { color: var(--muted); font-weight: 600; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .two > div { min-width: 0; }
+  .stat-line { display: flex; gap: 10px 26px; flex-wrap: wrap; margin: 0 0 10px; font: 500 15px var(--head); }
+  .stat-line b { font-size: 22px; color: var(--s-raft); }
+
+  /* ---------- attention compare slider ---------- */
+  .cmpwrap { max-width: 360px; margin: 0 auto; }
+  .cmpwrap .ann img { width: 100%; border-radius: 8px; display: block; }
+  .slider { position: relative; border-radius: 8px; overflow: hidden; user-select: none; touch-action: none; cursor: ew-resize; background: #000; }
+  .slider img { display: block; width: 100%; height: auto; }
+  .slider .top { position: absolute; inset: 0; clip-path: inset(0 0 0 50%); }
+  .slider .top img { width: 100%; height: 100%; object-fit: cover; }
+  .slider .handle { position: absolute; top: 0; bottom: 0; left: 50%; width: 3px; background: #fff; transform: translateX(-1.5px); box-shadow: 0 0 6px rgba(0,0,0,0.5); }
+  .slider .knob { position: absolute; top: 50%; left: 50%; width: 36px; height: 36px; border-radius: 50%; background: #fff; transform: translate(-50%, -50%); box-shadow: 0 1px 6px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; font: 700 15px var(--head); color: #333; }
+  .slider .tag { position: absolute; top: 10px; font: 600 14px var(--head); color: #fff; background: rgba(0,0,0,0.6); padding: 3px 10px; border-radius: 999px; }
+  .slider .tag.l { left: 10px; } .slider .tag.r { right: 10px; background: var(--s-raft); }
+  .slider input[type=range] { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: ew-resize; margin: 0; }
+
+  /* ---------- rollout carousel ---------- */
+  .carousel { position: relative; }
+  .track { display: grid; grid-auto-flow: column; grid-auto-columns: calc((100% - 20px) / 3); gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; }
+  .track::-webkit-scrollbar { display: none; }
+  .item { scroll-snap-align: start; border: 1px solid #bbb; border-radius: 10px; overflow: hidden; margin: 0; min-width: 0; background: #fff; }
+  .item video { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; display: block; background: #000; }
+  .item figcaption { font: 500 14px var(--head); padding: 7px 10px; }
+  .item figcaption span { color: var(--muted); font-weight: 400; }
+  .cbtn { position: absolute; top: calc(50% - 32px); width: 38px; height: 38px; border-radius: 50%; border: 0; background: rgba(255,255,255,0.95); color: #222; font-size: 22px; line-height: 1; cursor: pointer; box-shadow: 0 1px 6px rgba(0,0,0,0.3); }
+  .cbtn.prev { left: -10px; } .cbtn.next { right: -10px; }
+
+  /* ---------- bibtex ---------- */
+  .bib { position: relative; }
+  .bib pre { background: var(--panel); padding: 18px 20px; border-radius: 8px; overflow-x: auto; font: 13.5px/1.55 ui-monospace, "Cascadia Code", Consolas, monospace; margin: 0; }
+  .copy { position: absolute; top: 10px; right: 10px; border: 1px solid #d5d5d5; border-radius: 6px; padding: 4px 10px; background: #fff; color: var(--ink); font: 500 13px var(--head); cursor: pointer; }
+  footer { padding-block: 36px 48px; text-align: center; font-size: 13.5px; color: var(--muted); }
+
+  @media (max-width: 760px) {
+    section { padding-block: 32px; }
+    .two, .cmpwrap { grid-template-columns: 1fr; }
+    .cmpwrap .ann { max-width: 300px; }
+    .track { grid-auto-columns: 82%; }
+    .cbtn { display: none; }
+    .chart { overflow-x: auto; }
+    .chart svg { min-width: 560px; }
+  }
+  @media (max-width: 480px) { .pair { grid-template-columns: 1fr; } }
+</style>
+
+</head>
+<body>
+<header class="wrap">
+  <h1 class="pub-title"><span class="name">RAFT</span>: Reasoning-Aligned Fine-Tuning Improves Robustness of VLA Post-Training</h1>
+  <p class="authors"><span>Shresth Grover<sup>1</sup></span><span>Andrey Kolobov<sup>2</sup></span><span>Dhruv Shah<sup>1</sup></span></p>
+  <p class="affils"><span><sup>1</sup>Princeton University</span><span><sup>2</sup>Microsoft Research</span></p>
+  <div class="links">
+    <!-- TODO: link the paper and code once public -->
+    <span class="lbtn off" title="Coming soon"><svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6zM14 3v5h5"/></svg>Paper</span>
+    <span class="lbtn off" title="Coming soon"><svg viewBox="0 0 24 24"><path d="M8 6 2 12l6 6 1.4-1.4L4.8 12l4.6-4.6zm8 0-1.4 1.4 4.6 4.6-4.6 4.6L16 18l6-6z"/></svg>Code</span>
+    <a class="lbtn" href="#rollouts"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>Videos</a>
+    <a class="lbtn" href="#bibtex"><svg viewBox="0 0 24 24"><path d="M5 4h14v16H5zm3 4v2h8V8zm0 4v2h8v-2z"/></svg>BibTeX</a>
+  </div>
+  <div class="teaser">
+    <video id="teaser" src="static/videos/raft_overview.mp4" autoplay muted loop playsinline controls preload="auto"></video>
+  </div>
+</header>
+
+<section class="wrap" id="problem">
+  <h2>Problem Statement</h2>
+  <div class="col">
+    <p class="just">Generalist vision-language-action (VLA) policies still need post-training to reach high success on a
+      new target task. With only a few demonstrations, plain fine-tuning improves success in the demonstration setup but
+      makes the policy brittle: on a physical DROID robot it succeeds in 60% of in-distribution trials but only about 28%
+      once the object color, distractors or background change.</p>
+  </div>
+  <p class="tldr"><b>TL;DR:</b> Train a reasoning adapter first, freeze it, then fine-tune on actions. VLAs post-trained
+    this way stay robust to new objects, clutter, poses and backgrounds that break plain fine-tuning.</p>
+</section>
+
+<section class="wrap" id="method">
+  <h2>Method</h2>
+  <div class="col">
+    <p class="just">RAFT is a two-stage post-training procedure. <b>Stage I</b> trains a low-rank adapter (LoRA) on
+      task-relevant reasoning annotations, such as object bounding boxes, keypoints and gripper traces, while the rest of
+      the policy stays frozen. <b>Stage II</b> freezes that adapter and fine-tunes all remaining policy parameters on the
+      action demonstrations.</p>
+  </div>
+  <figure class="fig col" style="margin-top:14px">
+    <img src="static/images/method.png" alt="RAFT two-stage diagram. Stage I trains a LoRA on the frozen VLM backbone with reasoning targets such as bounding boxes, keypoints and trace tokens. Stage II freezes that LoRA and trains the backbone and action expert on continuous actions." loading="lazy">
+  </figure>
+</section>
+
+<section class="wrap" id="compare">
+  <h2>Comparison with Baselines</h2>
+  <div class="col"><p class="just">Pick a robot and an out-of-distribution (OOD) axis to see all three baselines
+    and RAFT on it. All policies were post-trained on the same demonstrations and start from a similar
+    configuration.</p></div>
+  <div class="panel">
+    <div class="controls">
+      <div class="ctrl"><span>Robot</span><div class="seg" id="cmp-robot"></div></div>
+      <div class="ctrl"><span>Task</span><span class="task" id="cmp-task"></span></div>
+    </div>
+    <div class="controls">
+      <div class="ctrl"><span>OOD axis</span><div class="seg" id="cmp-shift"></div></div>
+    </div>
+    <div class="duo" id="cmp-grid"></div>
+    <p class="cap center" id="cmp-note"></p>
+  </div>
+</section>
+
+<section class="wrap" id="results">
+  <h2>Results</h2>
+  <div class="col"><p class="just">Across two real robots and two simulated tasks, RAFT has the highest
+    out-of-distribution success while matching or exceeding the baselines in distribution.</p></div>
+  <div class="panel col">
+    <div class="controls"><div class="ctrl"><span>Setting</span><div class="seg" id="res-tabs"></div></div></div>
+    <p class="cap" id="res-lead" style="margin:0 0 10px"></p>
+    <div class="chart" id="res-chart"></div>
+  </div>
+</section>
+
+<section class="wrap" id="ablations">
+  <h2>Ablations</h2>
+  <div class="col">
+    <h3>Staging and a frozen adapter matter</h3>
+    <p class="just">On simulated pick and place, co-training reasoning and actions jointly, or leaving the adapter
+      trainable in Stage II, both fall below RAFT.</p>
+    <div class="panel">
+      <div class="controls"><div class="ctrl"><span>Split</span><div class="seg" id="stage-split"></div></div></div>
+      <div class="chart" id="stage-chart"></div>
+    </div>
+
+    <h3>Broader reasoning data helps downstream</h3>
+    <p class="just">Adding reasoning data from other scenes to Stage I lowers held-out reasoning loss and improves
+      downstream success at every demonstration budget.</p>
+    <div class="panel">
+      <div class="stat-line"><span>Held-out reasoning loss: <b>0.62 &rarr; 0.29</b></span></div>
+      <div class="chart" id="data-chart"></div>
+    </div>
+
+    <h3>RAFT with different reasoning modalities</h3>
+    <p class="just">Blue points are RAFT trained with different Stage-I reasoning modalities, plotted by
+      in-distribution and out-of-distribution success; the red cross is plain fine-tuning without reasoning.</p>
+    <div class="panel">
+      <div class="controls"><div class="ctrl"><span>Task</span><div class="seg" id="mod-tabs"></div></div></div>
+      <div class="chart" id="mod-chart"></div>
+    </div>
+
+    <h3>RAFT is compatible with RETAIN weight merging</h3>
+    <p class="just">On Franka open drawer, using RAFT instead of plain fine-tuning as RETAIN's fine-tuned endpoint raises
+      pooled success from 26.9% to 32.8% (merging at &alpha; = 0.9, 106 trials per condition).</p>
+    <div class="panel"><div class="chart" id="retain-chart"></div></div>
+  </div>
+</section>
+
+<section class="wrap" id="analysis">
+  <h2>Representation Analysis</h2>
+  <div class="col">
+    <p class="just">RAFT attends more to the annotated task regions: at layer 11 they receive 3.2&ndash;3.4 times their
+      share of the image, versus 1.9&ndash;2.1 for plain fine-tuning. Its late layers also keep more object information:
+      linear probes on layers 14&ndash;17 decode object identity with 0.51&ndash;0.53 balanced accuracy, versus 0.45.</p>
+    <div class="panel">
+      <div class="controls">
+        <div class="ctrl"><span>Frame</span><div class="seg" id="att-frame"></div></div>
+        <div class="ctrl"><span>Compare RAFT with</span><div class="seg" id="att-model"></div></div>
+      </div>
+      <div class="cmpwrap">
+        <div>
+          <div class="slider" id="att-slider">
+            <img id="att-left" alt="">
+            <div class="top"><img id="att-right" alt=""></div>
+            <div class="handle"></div><div class="knob">&#8596;</div>
+            <span class="tag l" id="att-left-tag"></span><span class="tag r">RAFT</span>
+            <input type="range" min="0" max="100" value="50" aria-label="Drag to compare attention maps">
+          </div>
+          <p class="cap center">Drag to compare attention maps on the same frame. White boxes mark the object and the target;
+            white points mark annotated keypoints.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="wrap" id="rollouts">
+  <h2>RAFT Rollouts</h2>
+  <div class="col"><p class="just center">Autonomous RAFT policies on DROID and bimanual YAM, in the demonstration setup
+    and under distribution shifts.</p></div>
+  <div class="carousel">
+    <div class="track" id="track"></div>
+    <button class="cbtn prev" type="button" aria-label="Previous">&#8249;</button>
+    <button class="cbtn next" type="button" aria-label="Next">&#8250;</button>
+  </div>
+</section>
+
+<section class="wrap" id="bibtex">
+  <h2>BibTeX</h2>
+  <div class="bib col">
+    <button class="copy" type="button">Copy</button>
+<pre><code>@article{grover2026raft,
+  title   = {RAFT: Reasoning-Aligned Fine-Tuning Improves Robustness of VLA Post-Training},
+  author  = {Grover, Shresth and Kolobov, Andrey and Shah, Dhruv},
+  journal = {arXiv preprint},
+  year    = {2026}
+}</code></pre>
+  </div>
+</section>
+
+<footer class="wrap">Page layout follows the <a href="https://nerfies.github.io/">Nerfies</a> project-page style.</footer>
+
+<script>
+(function () {
+  'use strict';
+  function el(tag, attrs, kids) {
+    var n = document.createElement(tag);
+    for (var k in attrs || {}) { if (k === 'text') n.textContent = attrs[k]; else n.setAttribute(k, attrs[k]); }
+    (kids || []).forEach(function (c) { n.appendChild(c); });
+    return n;
+  }
+  function S(tag, attrs, text) {
+    var n = document.createElementNS('http://www.w3.org/2000/svg', tag);
+    for (var k in attrs || {}) n.setAttribute(k, attrs[k]);
+    if (text != null) n.textContent = text;
+    return n;
+  }
+  function segmented(host, options, current, onPick) {
+    host.innerHTML = '';
+    options.forEach(function (o) {
+      var b = el('button', { type: 'button', 'aria-pressed': String(o.id === current), text: o.label });
+      b.addEventListener('click', function () {
+        host.querySelectorAll('button').forEach(function (x) { x.setAttribute('aria-pressed', 'false'); });
+        b.setAttribute('aria-pressed', 'true'); onPick(o.id);
+      });
+      host.appendChild(b);
+    });
+  }
+  function play(v) { var p = v.play(); if (p && p.catch) p.catch(function () {}); }
+
+  // Seeking needs the whole file when the host does not serve byte ranges: load the teaser into a blob URL.
+  (function () {
+    var t = document.getElementById('teaser');
+    if (!window.fetch || !window.URL || !URL.createObjectURL) return;
+    fetch(t.getAttribute('src')).then(function (r) { if (!r.ok) throw new Error(r.status); return r.blob(); }).then(function (b) {
+      var at = t.currentTime || 0, wasPlaying = !t.paused;
+      t.src = URL.createObjectURL(b);
+      t.addEventListener('loadedmetadata', function once() {
+        t.removeEventListener('loadedmetadata', once);
+        try { t.currentTime = at; } catch (e) {}
+        if (wasPlaying) play(t);
+      });
+    }).catch(function () {});
+  })();
+
+  // Shared chart chrome: tooltip, legend with toggles, data table.
+  function frame(host, series, tableHead, tableRows) {
+    host.innerHTML = '';
+    var legend = el('div', { 'class': 'legend' }), plot = el('div'), tip = el('div', { 'class': 'tip', hidden: '' });
+    var foot = el('div', { 'class': 'foot' }), tb = el('button', { type: 'button', 'class': 'tbtn', 'aria-expanded': 'false', text: 'Show data' });
+    var tw = el('div', { 'class': 'twrap', hidden: '' });
+    foot.appendChild(el('span', { text: series && series.length > 1 ? 'Click a legend entry to hide it' : '' }));
+    foot.appendChild(tb);
+    if (series && series.length > 1) host.appendChild(legend);
+    host.appendChild(plot); host.appendChild(foot); host.appendChild(tw); host.appendChild(tip);
+    var t = el('table', { 'class': 'data' }), hr = el('tr');
+    tableHead.forEach(function (h) { hr.appendChild(el('th', { text: h })); });
+    t.appendChild(el('thead', {}, [hr]));
+    var body = el('tbody');
+    tableRows.forEach(function (r) { var tr = el('tr'); r.forEach(function (c) { tr.appendChild(el('td', { text: String(c) })); }); body.appendChild(tr); });
+    t.appendChild(body); tw.appendChild(t);
+    tb.addEventListener('click', function () { var o = tw.hidden; tw.hidden = !o; tb.setAttribute('aria-expanded', String(o)); tb.textContent = o ? 'Hide data' : 'Show data'; });
+    function showTip(svg, W, H, x, y, text) {
+      var rb = host.getBoundingClientRect(), sb = svg.getBoundingClientRect();
+      tip.textContent = text; tip.hidden = false;
+      tip.style.left = (sb.left - rb.left + x / W * sb.width) + 'px';
+      tip.style.top = (sb.top - rb.top + y / H * sb.height) + 'px';
+    }
+    return { legend: legend, plot: plot, show: showTip, hide: function () { tip.hidden = true; } };
+  }
+  // No hover tooltips: values are printed on the marks and listed in the data table.
+  function hit() {}
+  function barPath(x, top, w, base) {
+    var h = base - top, r = Math.min(4, w / 2, Math.max(h, 0));
+    return 'M' + x + ',' + base + 'V' + (top + r) + 'Q' + x + ',' + top + ' ' + (x + r) + ',' + top + 'H' + (x + w - r) +
+           'Q' + (x + w) + ',' + top + ' ' + (x + w) + ',' + (top + r) + 'V' + base + 'Z';
+  }
+
+  var COL = { raft: 'var(--s-raft)', plain: 'var(--s-plain)', retain: 'var(--s-retain)', delock: 'var(--s-delock)', base: 'var(--s-base)' };
+  var NAME = { raft: 'RAFT', plain: 'Plain FT', retain: 'RETAIN', delock: 'DeLock', base: 'Base' };
+
+  // ---------------- grouped vertical bars ----------------
+  function grouped(host, spec) {
+    spec.series.forEach(function (s) { s.name = s.name || NAME[s.key]; s.color = s.color || COL[s.key]; });
+    var rows = spec.cats.map(function (c, i) { return [c.replace('\n', ' ')].concat(spec.series.map(function (s) { return s.vals[i]; })); });
+    var F = frame(host, spec.series, [spec.catTitle || 'Condition'].concat(spec.series.map(function (s) { return s.name; })), rows);
+    var hidden = {};
+    spec.series.forEach(function (s) {
+      var b = el('button', { type: 'button', 'aria-pressed': 'true' });
+      b.appendChild(el('i', { style: 'background:' + s.color })); b.appendChild(document.createTextNode(s.name));
+      b.addEventListener('click', function () {
+        hidden[s.key] = !hidden[s.key];
+        if (spec.series.every(function (x) { return hidden[x.key]; })) hidden[s.key] = false;
+        b.setAttribute('aria-pressed', String(!hidden[s.key])); draw();
+      });
+      F.legend.appendChild(b);
+    });
+    function draw() {
+      F.plot.innerHTML = '';
+      var shown = spec.series.filter(function (s) { return !hidden[s.key]; });
+      var W = 900, H = spec.height || 330, L = 46, R = 6, T = 20, B = 48, pw = W - L - R, ph = H - T - B;
+      var gw = pw / spec.cats.length, inner = Math.min(gw * 0.8, shown.length * 44), gap = 2;
+      var bw = (inner - gap * (shown.length - 1)) / shown.length;
+      var y = function (v) { return T + ph - v / spec.max * ph; };
+      var svg = S('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img', 'aria-label': spec.aria || '' });
+      var ax = S('g', { 'class': 'axis' });
+      for (var tv = 0; tv <= spec.max + 1e-9; tv += spec.step) {
+        ax.appendChild(S('line', { x1: L, x2: W - R, y1: y(tv), y2: y(tv), 'class': 'grid' }));
+        ax.appendChild(S('text', { x: L - 8, y: y(tv) + 4, 'text-anchor': 'end' }, (Math.round(tv * 100) / 100) + (spec.unit || '')));
+      }
+      ax.appendChild(S('text', { x: 12, y: T + ph / 2, transform: 'rotate(-90 12 ' + (T + ph / 2) + ')', 'text-anchor': 'middle' }, spec.yTitle || 'Success (%)'));
+      svg.appendChild(ax);
+      var g = S('g'), bars = [];
+      spec.cats.forEach(function (c, i) {
+        var cx = L + gw * (i + 0.5);
+        c.split('\n').forEach(function (ln, j) { g.appendChild(S('text', { x: cx, y: H - B + 20 + j * 15, 'text-anchor': 'middle', 'class': 'tick' }, ln)); });
+        shown.forEach(function (s, k) {
+          var v = s.vals[i], x = cx - inner / 2 + k * (bw + gap), top = y(v);
+          var p = S('path', { d: barPath(x, top, bw, y(0)), fill: s.color }); bars.push(p); g.appendChild(p);
+          g.appendChild(S('text', { x: x + bw / 2, y: top - 5, 'text-anchor': 'middle', 'class': 'val' }, spec.dec ? v.toFixed(spec.dec) : String(v)));
+          var hr = S('rect', { x: x - 1, y: T, width: bw + 2, height: ph, fill: 'transparent', 'aria-label': s.name + ', ' + c.replace('\n', ' ') + ': ' + v + (spec.unit || '%') });
+          hit(hr, function () { F.show(svg, W, H, x + bw / 2, top, s.name + ' · ' + c.replace('\n', ' ') + ': ' + v + (spec.unit || '%')); bars.forEach(function (b) { b.style.opacity = b === p ? 1 : 0.4; }); },
+                  function () { F.hide(); bars.forEach(function (b) { b.style.opacity = ''; }); });
+          g.appendChild(hr);
+        });
+      });
+      svg.appendChild(g);
+      svg.appendChild(S('line', { x1: L, x2: W - R, y1: y(0), y2: y(0), 'class': 'base' }));
+      F.plot.appendChild(svg);
+    }
+    draw();
+  }
+
+  // ---------------- horizontal bars (staging ablation) ----------------
+  function hbars(host, spec, si) {
+    var F = frame(host, null, ['Training scheme'].concat(spec.splits), spec.rows.map(function (r) { return [r.name].concat(r.v); }));
+    var W = 900, rh = 36, L = 290, R = 56, T = 6, H = T + spec.rows.length * rh + 26;
+    var x = function (v) { return L + v / 100 * (W - L - R); };
+    var svg = S('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img', 'aria-label': 'Success by training scheme, ' + spec.splits[si] });
+    var ax = S('g', { 'class': 'axis' });
+    [0, 25, 50, 75, 100].forEach(function (tv) {
+      ax.appendChild(S('line', { x1: x(tv), x2: x(tv), y1: T, y2: H - 24, 'class': 'grid' }));
+      ax.appendChild(S('text', { x: x(tv), y: H - 6, 'text-anchor': 'middle' }, tv + '%'));
+    });
+    svg.appendChild(ax);
+    spec.rows.forEach(function (r, i) {
+      var cy = T + i * rh + rh / 2, v = r.v[si], bh = 20, x1 = x(v), rr = Math.min(4, (x1 - x(0)) / 2);
+      var nm = S('text', { x: L - 12, y: cy + 4, 'text-anchor': 'end', 'class': 'tick' }, r.name);
+      if (r.raft) nm.setAttribute('font-weight', '700');
+      svg.appendChild(nm);
+      var d = 'M' + x(0) + ',' + (cy - bh / 2) + 'H' + (x1 - rr) + 'Q' + x1 + ',' + (cy - bh / 2) + ' ' + x1 + ',' + (cy - bh / 2 + rr) +
+              'V' + (cy + bh / 2 - rr) + 'Q' + x1 + ',' + (cy + bh / 2) + ' ' + (x1 - rr) + ',' + (cy + bh / 2) + 'H' + x(0) + 'Z';
+      var p = S('path', { d: d, fill: r.raft ? 'var(--s-raft)' : (r.plain ? 'var(--s-plain)' : '#b9bec7') });
+      svg.appendChild(p);
+      svg.appendChild(S('text', { x: x1 + 8, y: cy + 4, 'class': 'val' }, v.toFixed(1)));
+      var hr = S('rect', { x: x(0), y: cy - rh / 2, width: W - L, height: rh, fill: 'transparent', 'aria-label': r.name + ': ' + v + '%' });
+      hit(hr, function () { F.show(svg, W, H, x1, cy - bh / 2, r.name + ': ' + v.toFixed(1) + '% (' + spec.splits[si] + ')'); }, F.hide);
+      svg.appendChild(hr);
+    });
+    svg.appendChild(S('line', { x1: x(0), x2: x(0), y1: T, y2: H - 24, 'class': 'base' }));
+    F.plot.appendChild(svg);
+  }
+
+  // ---------------- scatter (reasoning modality) ----------------
+  function scatter(host, spec) {
+    var F = frame(host, null, ['Stage-I format', spec.xTitle, spec.yTitle], spec.pts.map(function (p) { return [p.n, p.x, p.y]; }));
+    var W = 900, H = 420, L = 60, R = 20, T = 16, B = 50, pw = W - L - R, ph = H - T - B;
+    var x = function (v) { return L + (v - spec.x0) / (spec.x1 - spec.x0) * pw; };
+    var y = function (v) { return T + ph - (v - spec.y0) / (spec.y1 - spec.y0) * ph; };
+    var svg = S('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img', 'aria-label': spec.aria });
+    var ax = S('g', { 'class': 'axis' });
+    for (var a = spec.x0; a <= spec.x1 + 1e-9; a += spec.xs) { ax.appendChild(S('line', { x1: x(a), x2: x(a), y1: T, y2: T + ph, 'class': 'grid' })); ax.appendChild(S('text', { x: x(a), y: T + ph + 18, 'text-anchor': 'middle' }, a)); }
+    for (var b = spec.y0; b <= spec.y1 + 1e-9; b += spec.ys) { ax.appendChild(S('line', { x1: L, x2: L + pw, y1: y(b), y2: y(b), 'class': 'grid' })); ax.appendChild(S('text', { x: L - 8, y: y(b) + 4, 'text-anchor': 'end' }, b)); }
+    ax.appendChild(S('text', { x: L + pw / 2, y: H - 6, 'text-anchor': 'middle' }, spec.xTitle + ' (%)'));
+    ax.appendChild(S('text', { x: 14, y: T + ph / 2, transform: 'rotate(-90 14 ' + (T + ph / 2) + ')', 'text-anchor': 'middle' }, spec.yTitle + ' (%)'));
+    svg.appendChild(ax);
+    var ref = spec.pts.filter(function (p) { return p.ref; })[0];
+    svg.appendChild(S('line', { x1: x(ref.x), x2: x(ref.x), y1: T, y2: T + ph, stroke: 'var(--s-plain)', 'stroke-dasharray': '5 5', 'stroke-width': 1.5 }));
+    svg.appendChild(S('line', { x1: L, x2: L + pw, y1: y(ref.y), y2: y(ref.y), stroke: 'var(--s-plain)', 'stroke-dasharray': '5 5', 'stroke-width': 1.5 }));
+    spec.pts.forEach(function (p) {
+      var cx = x(p.x), cy = y(p.y), g = S('g');
+      if (p.ref) {
+        g.appendChild(S('path', { d: 'M' + (cx - 7) + ',' + (cy - 7) + 'L' + (cx + 7) + ',' + (cy + 7) + 'M' + (cx + 7) + ',' + (cy - 7) + 'L' + (cx - 7) + ',' + (cy + 7), stroke: 'var(--s-plain)', 'stroke-width': 4, 'stroke-linecap': 'round' }));
+      } else {
+        g.appendChild(S('circle', { cx: cx, cy: cy, r: 8, fill: 'var(--s-raft)', stroke: '#fff', 'stroke-width': 2 }));
+      }
+      var dx = p.lx || 12, dy = p.ly || -10;
+      g.appendChild(S('text', { x: cx + dx, y: cy + dy, 'text-anchor': dx < 0 ? 'end' : 'start', 'class': 'ptlbl', fill: p.ref ? '#c0392b' : '#222' }, p.n));
+      var hr = S('circle', { cx: cx, cy: cy, r: 16, fill: 'transparent', 'aria-label': p.n + ': ' + p.x + '% ' + spec.xTitle + ', ' + p.y + '% ' + spec.yTitle });
+      hit(hr, function () { F.show(svg, W, H, cx, cy - 8, p.n + ' · ' + spec.xTitle + ' ' + p.x + '% · ' + spec.yTitle + ' ' + p.y + '%'); }, F.hide);
+      g.appendChild(hr);
+      svg.appendChild(g);
+    });
+    F.plot.appendChild(svg);
+  }
+
+  // ---------------- baseline vs RAFT selector ----------------
+  // Matched rollouts from the paper's appendix. `fail` marks the baseline whose failure the paper documents for that axis.
+  var cmp = {
+    droid: { label: 'DROID', task: 'Pick up the toy and place it in the bowl', shifts: [
+      { id: 'bg', label: 'Background', fail: 'plainft', note: 'The tabletop and backdrop differ from the demonstrations.' },
+      { id: 'clutter', label: 'Distractors', fail: 'retain', note: 'Extra toys are scattered around the target.' },
+      { id: 'object', label: 'Object color', fail: 'delock', note: 'The target toy has a color never seen in the demonstrations.' } ] },
+    yam: { label: 'Bimanual YAM', task: 'Open the box, then place the toy inside', shifts: [
+      { id: 'color', label: 'Object color', fail: 'plainft', note: 'The toy is a new color.' },
+      { id: 'pose', label: 'Box pose', fail: 'retain', note: 'The box starts in a position and orientation not seen in the demonstrations.' },
+      { id: 'clutter', label: 'Clutter', fail: 'delock', note: 'Distractor toys surround the target.' } ] }
+  };
+  var POLICIES = [['plainft', 'Plain FT'], ['retain', 'RETAIN'], ['delock', 'DeLock'], ['raft', 'RAFT']];
+  var cs = { robot: 'yam', shift: 'color' };
+  function curShift() { var R = cmp[cs.robot]; return R.shifts.filter(function (x) { return x.id === cs.shift; })[0] || R.shifts[0]; }
+  function showPair() {
+    var R = cmp[cs.robot], s = curShift();
+    document.getElementById('cmp-task').textContent = R.task;
+    document.getElementById('cmp-note').textContent = s.note;
+    var grid = document.getElementById('cmp-grid'); grid.innerHTML = '';
+    POLICIES.forEach(function (p) {
+      var v = el('video', { loop: '', playsinline: '', autoplay: '', preload: 'metadata' }); v.muted = true;
+      v.src = 'static/videos/cmp/' + cs.robot + '_' + s.id + '_' + p[0] + '.mp4';
+      var cap = el('figcaption'); cap.appendChild(document.createTextNode(p[1]));
+      if (p[0] === 'raft') { cap.appendChild(document.createTextNode(' · ')); cap.appendChild(el('span', { 'class': 'ok', text: 'succeeds' })); }
+      else { cap.appendChild(document.createTextNode(' · ')); cap.appendChild(el('span', { 'class': 'fail', text: 'fails' })); }
+      grid.appendChild(el('figure', { 'class': p[0] === 'raft' ? 'ours' : '' }, [el('div', { 'class': 'vbox' }, [v]), cap])); play(v);
+    });
+  }
+  function drawShifts() { segmented(document.getElementById('cmp-shift'), cmp[cs.robot].shifts, cs.shift, function (id) { cs.shift = id; showPair(); }); }
+  segmented(document.getElementById('cmp-robot'), [{ id: 'yam', label: 'Bimanual YAM' }, { id: 'droid', label: 'DROID' }], 'yam', function (id) { cs.robot = id; cs.shift = cmp[id].shifts[0].id; drawShifts(); showPair(); });
+  drawShifts(); showPair();
+
+  // ---------------- results ----------------
+  // Values are the per-condition success rates printed in the paper's result figures.
+  var results = {
+    droid: { label: 'DROID', lead: 'MolmoB0t post-trained on 50 pick-and-place demonstrations, evaluated on a physical DROID robot.',
+      cats: ['ID', 'OOD\nobject color', 'OOD\ndistractors', 'OOD\nbackground', 'Mean'],
+      series: [ { key: 'raft', vals: [63, 83, 75, 65, 71] }, { key: 'plain', vals: [60, 33, 25, 25, 38] }, { key: 'retain', vals: [53, 33, 17, 35, 36] },
+                { key: 'delock', vals: [53, 42, 33, 30, 40] }, { key: 'base', vals: [47, 25, 33, 30, 35] } ] },
+    yam: { label: 'Bimanual YAM', lead: 'π₀.₅ post-trained on 100 demonstrations; success means opening the box and placing the toy inside.',
+      cats: ['ID', 'OOD\nclutter', 'OOD\nbox pose', 'OOD\nobject color', 'OOD\nbackground', 'Mean'],
+      series: [ { key: 'raft', vals: [73, 67, 70, 80, 60, 70] }, { key: 'plain', vals: [53, 33, 33, 23, 30, 35] },
+                { key: 'retain', vals: [40, 27, 13, 30, 33, 29] }, { key: 'delock', vals: [43, 33, 33, 30, 40, 36] } ] },
+    pick: { label: 'Sim · pick and place', lead: 'MolmoB0t in the MolmoSpaces simulator, 106 trials per condition.',
+      cats: ['ID', 'OOD\nlighting', 'OOD\ntexture', 'OOD\nobject', 'OOD\nprompt', 'Mean'],
+      series: [ { key: 'raft', vals: [95, 93, 92, 43, 92, 83] }, { key: 'plain', vals: [91, 88, 92, 36, 92, 80] }, { key: 'retain', vals: [90, 91, 92, 37, 88, 79] },
+                { key: 'delock', vals: [85, 86, 83, 32, 86, 74] }, { key: 'base', vals: [80, 63, 8, 40, 81, 55] } ] },
+    drawer: { label: 'Sim · open drawer', lead: 'MolmoB0t in the MolmoSpaces simulator, 106 trials per condition.', max: 60, step: 20,
+      cats: ['ID', 'OOD\ntexture', 'OOD\nlighting', 'OOD\nprompt', 'Mean'],
+      series: [ { key: 'raft', vals: [46, 28, 41, 42, 39] }, { key: 'plain', vals: [29, 15, 36, 36, 29] }, { key: 'retain', vals: [39, 18, 35, 30, 30] },
+                { key: 'delock', vals: [43, 17, 24, 35, 30] }, { key: 'base', vals: [2, 2, 1, 0, 1] } ] }
+  };
+  function showResult(id) {
+    var R = results[id];
+    document.getElementById('res-lead').textContent = R.lead;
+    grouped(document.getElementById('res-chart'), { cats: R.cats, series: JSON.parse(JSON.stringify(R.series)), max: R.max || 100, step: R.step || 25, aria: R.label + ' success rate by condition' });
+  }
+  segmented(document.getElementById('res-tabs'), Object.keys(results).map(function (k) { return { id: k, label: results[k].label }; }), 'droid', showResult);
+  showResult('droid');
+
+  // ---------------- staging ablation ----------------
+  var stage = { splits: ['Mean', 'ID', 'Lighting', 'Texture', 'Object', 'Prompt'], rows: [
+    { name: 'RAFT (adapter frozen in Stage II)', raft: true, v: [83.2, 95.3, 93.4, 92.5, 43.4, 91.5] },
+    { name: 'Plain FT', plain: true, v: [79.6, 90.6, 87.7, 92.5, 35.9, 91.5] },
+    { name: 'Plain FT, frozen vision encoder', v: [79.6, 91.5, 86.8, 87.7, 40.6, 91.5] },
+    { name: 'Adapter trainable in Stage II', v: [74.0, 90.6, 86.8, 65.1, 34.9, 92.5] },
+    { name: 'Co-train reasoning and actions', v: [63.2, 79.2, 70.8, 72.6, 17.9, 75.5] },
+    { name: 'Stage I only (no action fine-tuning)', v: [48.3, 72.6, 60.4, 9.4, 33.0, 66.0] } ] };
+  segmented(document.getElementById('stage-split'), stage.splits.map(function (s, i) { return { id: i, label: s }; }), 0, function (i) { hbars(document.getElementById('stage-chart'), stage, i); });
+  hbars(document.getElementById('stage-chart'), stage, 0);
+
+  // ---------------- data scaling (raw_tables: downstream success across demonstration budgets) ----------------
+  grouped(document.getElementById('data-chart'), {
+    cats: ['25.1% of demos', '48.5% of demos', '100% of demos'], catTitle: 'Demonstration budget', max: 100, step: 25, height: 300, labelAll: true, dec: 1,
+    aria: 'Downstream success for in-domain versus broad-mixture Stage-I data at three demonstration budgets',
+    series: [ { key: 'indomain', name: 'In-domain reasoning data', color: 'var(--s-plain)', vals: [42.0, 61.8, 86.8] },
+              { key: 'raft', name: 'Broad reasoning mixture', color: 'var(--s-raft)', vals: [46.6, 65.2, 91.9] } ] });
+
+  // ---------------- reasoning modality (raw_tables, figure values) ----------------
+  var mods = {
+    drawer: { label: 'Open drawer', xTitle: 'ID success', yTitle: 'OOD-visual success', x0: 25, x1: 55, xs: 5, y0: 10, y1: 35, ys: 5,
+      pts: [ { n: 'Trace', x: 49.06, y: 23.58 }, { n: 'Bounding box', x: 46.23, y: 28.30, main: true }, { n: 'VQA', x: 44.34, y: 21.70, ly: 22 },
+             { n: 'Spatial', x: 38.68, y: 29.25 }, { n: 'All', x: 37.74, y: 21.70, ly: 22, main: true }, { n: 'Keypoints', x: 28.30, y: 19.81, lx: -12 },
+             { n: 'Plain FT', x: 29.25, y: 15.09, ref: true, ly: 22 } ] },
+    pick: { label: 'Pick and place', xTitle: 'ID success', yTitle: 'OOD-object success', x0: 86, x1: 97, xs: 1, y0: 32, y1: 48, ys: 2,
+      pts: [ { n: 'Trace', x: 87.74, y: 45.28 }, { n: 'VQA', x: 89.62, y: 43.40 }, { n: 'All', x: 95.28, y: 43.40, main: true, lx: -12 },
+             { n: 'Bounding box', x: 88.68, y: 34.91, ly: 22 }, { n: 'Keypoints', x: 92.45, y: 34.91, ly: 22 },
+             { n: 'Plain FT', x: 90.57, y: 35.85, ref: true } ] }
+  };
+  function showMod(id) { var M = mods[id]; scatter(document.getElementById('mod-chart'), { xTitle: M.xTitle, yTitle: M.yTitle, x0: M.x0, x1: M.x1, xs: M.xs, y0: M.y0, y1: M.y1, ys: M.ys, pts: M.pts, aria: M.label + ': success by reasoning format' }); }
+  segmented(document.getElementById('mod-tabs'), [{ id: 'pick', label: 'Pick and place' }, { id: 'drawer', label: 'Open drawer' }], 'pick', showMod);
+  showMod('pick');
+
+  // ---------------- RETAIN compatibility ----------------
+  grouped(document.getElementById('retain-chart'), {
+    cats: ['ID', 'Lighting', 'Lighting +\ntextures', 'Full\ntexture', 'Overall'], max: 50, step: 10, height: 290, labelAll: true, dec: 1,
+    aria: 'Open-drawer success for RETAIN on Plain FT, RETAIN on RAFT and RAFT alone',
+    series: [ { key: 'rp', name: 'RETAIN on Plain FT', color: 'var(--s-plain)', vals: [39.6, 38.7, 12.3, 17.0, 26.9] },
+              { key: 'rr', name: 'RETAIN on RAFT', color: 'var(--s-retain)', vals: [41.5, 37.7, 22.6, 29.2, 32.8] },
+              { key: 'raft', name: 'RAFT alone', color: 'var(--s-raft)', vals: [44.3, 41.5, 28.3, 25.5, 34.9] } ] });
+
+  // ---------------- attention compare slider ----------------
+  var att = { frame: 'f50', model: 'plainft' };
+  var MODELS = { plainft: 'Plain FT', base: 'Base', stage1: 'Stage I only' };
+  function showAtt() {
+    var p = 'static/images/attn4/' + att.frame + '_';
+    var l = document.getElementById('att-left'), r = document.getElementById('att-right');
+    l.src = p + att.model + '.jpg'; l.alt = MODELS[att.model] + ' attention map';
+    r.src = p + 'raft.jpg'; r.alt = 'RAFT attention map';
+    document.getElementById('att-left-tag').textContent = MODELS[att.model];
+  }
+  segmented(document.getElementById('att-frame'), [{ id: 'f20', label: '20' }, { id: 'f50', label: '50' }], 'f50', function (id) { att.frame = id; showAtt(); });
+  segmented(document.getElementById('att-model'), [{ id: 'plainft', label: 'Plain FT' }, { id: 'base', label: 'Base' }, { id: 'stage1', label: 'Stage I only' }], 'plainft', function (id) { att.model = id; showAtt(); });
+  var sl = document.getElementById('att-slider'), range = sl.querySelector('input');
+  function setPos(v) { sl.querySelector('.top').style.clipPath = 'inset(0 0 0 ' + v + '%)'; sl.querySelector('.handle').style.left = v + '%'; sl.querySelector('.knob').style.left = v + '%'; }
+  range.addEventListener('input', function () { setPos(range.value); });
+  showAtt(); setPos(50);
+
+  // ---------------- rollout carousel ----------------
+  var rollouts = [
+    ['droid/ood_object.mp4', 'DROID', 'novel object color'], ['yam/ood_box_pose.mp4', 'Bimanual YAM', 'shifted box pose'],
+    ['droid/ood_distractor.mp4', 'DROID', 'distractors'], ['yam/ood_object_color.mp4', 'Bimanual YAM', 'novel object color'],
+    ['droid/ood_background.mp4', 'DROID', 'new background'], ['yam/ood_clutter.mp4', 'Bimanual YAM', 'clutter'],
+    ['droid/ood_object_2.mp4', 'DROID', 'novel object color'], ['yam/ood_background.mp4', 'Bimanual YAM', 'new background'],
+    ['droid/ood_distractor_2.mp4', 'DROID', 'distractors'], ['yam/id_1.mp4', 'Bimanual YAM', 'demonstration setup'],
+    ['droid/ood_background_2.mp4', 'DROID', 'new background'], ['yam/ood_object_color_2.mp4', 'Bimanual YAM', 'novel object color'],
+    ['yam/id_2.mp4', 'Bimanual YAM', 'demonstration setup'], ['yam/ood_clutter_2.mp4', 'Bimanual YAM', 'clutter'] ];
+  var track = document.getElementById('track');
+  rollouts.forEach(function (r) {
+    var v = el('video', { loop: '', playsinline: '', preload: 'none', 'data-src': 'static/videos/' + r[0] }); v.muted = true;
+    var cap = el('figcaption'); cap.appendChild(document.createTextNode(r[1] + ' ')); cap.appendChild(el('span', { text: '· ' + r[2] }));
+    track.appendChild(el('figure', { 'class': 'item' }, [v, cap]));
+  });
+  var io = new IntersectionObserver(function (es) {
+    es.forEach(function (e) { var v = e.target; if (e.isIntersecting) { if (!v.src) v.src = v.dataset.src; play(v); } else if (!v.paused) v.pause(); });
+  }, { threshold: 0.4 });
+  track.querySelectorAll('video').forEach(function (v) { io.observe(v); });
+  document.querySelector('.cbtn.prev').addEventListener('click', function () { track.scrollBy({ left: -track.clientWidth, behavior: 'smooth' }); });
+  document.querySelector('.cbtn.next').addEventListener('click', function () { track.scrollBy({ left: track.clientWidth, behavior: 'smooth' }); });
+
+  // ---------------- BibTeX copy ----------------
+  document.querySelector('.copy').addEventListener('click', function (ev) {
+    var code = document.querySelector('.bib code'), btn = ev.target;
+    var fb = function () { var r = document.createRange(); r.selectNodeContents(code); var s = getSelection(); s.removeAllRanges(); s.addRange(r); btn.textContent = 'Press Ctrl+C'; };
+    try { navigator.clipboard.writeText(code.innerText).then(function () { btn.textContent = 'Copied'; setTimeout(function () { btn.textContent = 'Copy'; }, 1500); }, fb); } catch (e) { fb(); }
+  });
+})();
+</script>
+
+</body>
+</html>
