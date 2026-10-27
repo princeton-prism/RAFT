@@ -12,7 +12,7 @@ covered, **pick-and-place** (iTHOR FloorPlan13) and **open drawer**; every scrip
 ### Clone the repository (recursively)
 
 ```bash
-git clone --recursive <this repo> raft
+git clone --recursive https://github.com/princeton-prism/RAFT.git raft
 cd raft
 ```
 
@@ -41,12 +41,15 @@ export MLSPACES_CACHE_DIR=/path/to/cache   # MolmoSpaces scene/object assets (do
 | MolmoBot-Pi0-DROID | base policy, [allenai/MolmoBot-Pi0-DROID](https://huggingface.co/allenai/MolmoBot-Pi0-DROID) | `checkpoints/MolmoBot-Pi0-DROID` |
 | **RAFT, pick-and-place** | Stage II, [shrg7/RAFT-pickplace](https://huggingface.co/shrg7/RAFT-pickplace) | `checkpoints/RAFT-pickplace` |
 | **RAFT, open drawer** | Stage II, [shrg7/RAFT-opendrawer](https://huggingface.co/shrg7/RAFT-opendrawer) | `checkpoints/RAFT-opendrawer` |
-| action data | MolmoSpaces demos (h5 + mp4); split files in `config/data_splits/` | `data/<task>/action_train*` |
+| action data | MolmoSpaces demos (h5 + mp4), [shrg7/ithor-fp13-action-train](https://huggingface.co/datasets/shrg7/ithor-fp13-action-train) (pick-and-place) and [shrg7/franka-open-v1-action-train](https://huggingface.co/datasets/shrg7/franka-open-v1-action-train) (open drawer); split files in `config/data_splits/` | `data/<task>/action_train*` |
 | reasoning data | Gemini reasoning JSONL + frames | `data/<task>/reasoning*` |
 
 ```bash
-hf download shrg7/RAFT-pickplace  --local-dir checkpoints/RAFT-pickplace
-hf download shrg7/RAFT-opendrawer --local-dir checkpoints/RAFT-opendrawer
+hf download allenai/MolmoBot-Pi0-DROID --local-dir checkpoints/MolmoBot-Pi0-DROID
+hf download shrg7/RAFT-pickplace       --local-dir checkpoints/RAFT-pickplace
+hf download shrg7/RAFT-opendrawer      --local-dir checkpoints/RAFT-opendrawer
+hf download shrg7/ithor-fp13-action-train     --repo-type dataset --local-dir data/pickplace/action_train
+hf download shrg7/franka-open-v1-action-train --repo-type dataset --local-dir data/opendrawer
 ```
 
 Every path can be overridden with an env var (see [scripts/env.sh](scripts/env.sh)).
