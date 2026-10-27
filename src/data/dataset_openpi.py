@@ -135,12 +135,8 @@ def _norm_stats_range(stat: dict) -> tuple[np.ndarray, np.ndarray]:
 class MlSpacesDatasetConfigFactory(DataConfigFactory):
     joint_pos_actions: bool = True  # whether to treat actions as joint positions or deltas
     # Train the 7 arm dims as offsets from the current joint position instead of as
-    # absolute targets (the gripper stays absolute). This is the parameterization the
-    # pretrained pi0.5-DROID head already speaks: openpi's own pi05_droid_jointpos
-    # config carries `AbsoluteActions(make_bool_mask(7, -1))` as an OUTPUT transform,
-    # which only makes sense if the model emits deltas. Leaving this False trains
-    # absolute targets into a delta-trained head, which works (the FT relearns the
-    # parameterization) but throws away the pretrained action alignment.
+    # absolute targets (the gripper stays absolute), matching openpi's pi05_droid_jointpos
+    # config, which carries `AbsoluteActions(make_bool_mask(7, -1))` as an OUTPUT transform.
     # Requires joint_pos_actions=True.
     relative_actions: bool = False
     # Directory holding an openpi `norm_stats.json` (e.g. the pretrained checkpoint's

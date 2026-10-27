@@ -150,7 +150,7 @@ def get_model_parameters(model):
 
 @torch.no_grad()
 def run_action_validation(model, val_batches, device, seed: int = 1234) -> float:
-    """Mean flow-matching loss over a fixed set of held-out (obs, actions)
+    """Mean flow-matching loss over a fixed set of validation (obs, actions)
     batches. The flow noise/timestep RNG is reseeded (and restored) so the
     estimate is comparable across steps without perturbing training."""
     if not val_batches:
@@ -186,7 +186,7 @@ def cleanup_checkpoints(global_step: int, config: _config.TrainConfig, is_main: 
 
     # If KEEP_LAST_CHECKPOINTS=N (>0) and/or KEEP_BEST_CHECKPOINTS=M (>0) are set,
     # retain ONLY the newest N numeric step-checkpoints (latest, for resume) plus
-    # the M with the best held-out val loss (from `val_metric_by_step`, lower is
+    # the M with the best val loss (from `val_metric_by_step`, lower is
     # better); delete everything else (overrides keep_period). Caps disk use for
     # long resumable runs while preserving the val-optimal checkpoint.
     keep_last = int(os.environ.get("KEEP_LAST_CHECKPOINTS", "0"))
@@ -803,7 +803,7 @@ def train_loop(config: _config.TrainConfig):
                 infos = []  # Reset stats collection
 
             global_step += 1
-            # Held-out val loss at save boundaries -> ranks the 2-best checkpoints. VAL_INTERVAL
+            # Val loss at save boundaries -> ranks the 2-best checkpoints. VAL_INTERVAL
             # lets validation run more often than checkpoints are written.
             if val_batches and is_main and (
                 (global_step % val_interval == 0 and global_step > 0)

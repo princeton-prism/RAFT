@@ -46,8 +46,7 @@ export MLSPACES_CACHE_DIR=/path/to/cache   # MolmoSpaces scene/object assets (do
 | action data | MolmoSpaces demos (h5 + mp4); split files in `config/data_splits/` | `data/<task>/action_train*` |
 | reasoning data | Gemini reasoning JSONL + frames | `data/<task>/reasoning*` |
 
-Hugging Face links: _to be added at release_. Every path can be overridden with an env var (see
-[scripts/env.sh](scripts/env.sh)).
+Every path can be overridden with an env var (see [scripts/env.sh](scripts/env.sh)).
 
 ## Getting Started
 

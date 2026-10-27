@@ -22,7 +22,7 @@ bench=${BENCH_ROOT}/id light=false tex=false texall=false workers=3
 case "${TASK}:${AXIS}" in
     pickplace:id)          workers=4 ;;
     pickplace:oodlight)    light=true ;;
-    pickplace:texall)      texall=true ;;
+    pickplace:texall)      tex=true; texall=true ;;
     pickplace:oodobjv3)    bench=${BENCH_ROOT}/oodobj ;;
     pickplace:oodprompt)   bench=${BENCH_ROOT}/oodprompt ;;
     opendrawer:id)         ;;
