@@ -40,11 +40,16 @@ export MLSPACES_CACHE_DIR=/path/to/cache   # MolmoSpaces scene/object assets (do
 |---|---|---|
 | MolmoBot-Pi0-DROID | base policy, [allenai/MolmoBot-Pi0-DROID](https://huggingface.co/allenai/MolmoBot-Pi0-DROID) | `checkpoints/MolmoBot-Pi0-DROID` |
 | RAFT Stage I, pick-and-place | reasoning LoRA merged into the base | `checkpoints/RAFT-stage1-pickplace` |
-| **RAFT, pick-and-place** | Stage II | `checkpoints/RAFT-pickplace` |
+| **RAFT, pick-and-place** | Stage II, [shrg7/RAFT-pickplace](https://huggingface.co/shrg7/RAFT-pickplace) | `checkpoints/RAFT-pickplace` |
 | RAFT Stage I, open drawer | reasoning LoRA merged into the base | `checkpoints/RAFT-stage1-opendrawer` |
-| **RAFT, open drawer** | Stage II | `checkpoints/RAFT-opendrawer` |
+| **RAFT, open drawer** | Stage II, [shrg7/RAFT-opendrawer](https://huggingface.co/shrg7/RAFT-opendrawer) | `checkpoints/RAFT-opendrawer` |
 | action data | MolmoSpaces demos (h5 + mp4); split files in `config/data_splits/` | `data/<task>/action_train*` |
 | reasoning data | Gemini reasoning JSONL + frames | `data/<task>/reasoning*` |
+
+```bash
+hf download shrg7/RAFT-pickplace  --local-dir checkpoints/RAFT-pickplace
+hf download shrg7/RAFT-opendrawer --local-dir checkpoints/RAFT-opendrawer
+```
 
 Every path can be overridden with an env var (see [scripts/env.sh](scripts/env.sh)).
 
