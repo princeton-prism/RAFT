@@ -186,7 +186,7 @@
   <div class="col">
     <p class="just">Generalist vision-language-action (VLA) policies still need post-training to reach high success on a
       new target task. With only a few demonstrations, plain fine-tuning improves success in the demonstration setup but
-      makes the policy brittle: on a physical DROID robot it succeeds in 60% of in-distribution trials but only about 28%
+      makes the policy brittle: on a physical DROID robot it succeeds in 60% of in-distribution trials but only 27.9%
       once the object color, distractors or background change.</p>
   </div>
   <p class="tldr"><b>TL;DR:</b> Train a reasoning adapter first, freeze it, then fine-tune on actions. VLAs post-trained
@@ -264,7 +264,7 @@
 
     <h3>RAFT is compatible with RETAIN weight merging</h3>
     <p class="just">On Franka open drawer, using RAFT instead of plain fine-tuning as RETAIN's fine-tuned endpoint raises
-      pooled success from 26.9% to 32.8% (merging at &alpha; = 0.9, 106 trials per condition).</p>
+      pooled success from 31.76% to 36.16% over ID, lighting and full-texture trials (merging at &alpha; = 0.9, 106 trials per condition).</p>
     <div class="panel"><div class="chart" id="retain-chart"></div></div>
   </div>
 </section>
@@ -553,7 +553,7 @@
   // ---------------- results ----------------
   // Values are the per-condition success rates printed in the paper's result figures.
   var results = {
-    droid: { label: 'DROID', lead: 'MolmoB0t post-trained on 50 pick-and-place demonstrations, evaluated on a physical DROID robot.',
+    droid: { label: 'DROID', lead: 'MolmoBot post-trained on 50 pick-and-place demonstrations, evaluated on a physical DROID robot.',
       cats: ['ID', 'OOD\nobject color', 'OOD\ndistractors', 'OOD\nbackground', 'Mean'],
       series: [ { key: 'raft', vals: [63, 83, 75, 65, 71] }, { key: 'plain', vals: [60, 33, 25, 25, 38] }, { key: 'retain', vals: [53, 33, 17, 35, 36] },
                 { key: 'delock', vals: [53, 42, 33, 30, 40] }, { key: 'base', vals: [47, 25, 33, 30, 35] } ] },
@@ -561,13 +561,13 @@
       cats: ['ID', 'OOD\nclutter', 'OOD\nbox pose', 'OOD\nobject color', 'OOD\nbackground', 'Mean'],
       series: [ { key: 'raft', vals: [73, 67, 70, 80, 60, 70] }, { key: 'plain', vals: [53, 33, 33, 23, 30, 35] },
                 { key: 'retain', vals: [40, 27, 13, 30, 33, 29] }, { key: 'delock', vals: [43, 33, 33, 30, 40, 36] } ] },
-    pick: { label: 'Sim · pick and place', lead: 'MolmoB0t in the MolmoSpaces simulator, 106 trials per condition.',
+    pick: { label: 'Sim · pick and place', lead: 'MolmoBot in the MolmoSpaces simulator, 106 trials per condition.',
       cats: ['ID', 'OOD\nlighting', 'OOD\ntexture', 'OOD\nobject', 'OOD\nprompt', 'Mean'],
       series: [ { key: 'raft', vals: [95, 93, 92, 43, 92, 83] }, { key: 'plain', vals: [91, 88, 92, 36, 92, 80] }, { key: 'retain', vals: [90, 91, 92, 37, 88, 79] },
                 { key: 'delock', vals: [85, 86, 83, 32, 86, 74] }, { key: 'base', vals: [80, 63, 8, 40, 81, 55] } ] },
-    drawer: { label: 'Sim · open drawer', lead: 'MolmoB0t in the MolmoSpaces simulator, 106 trials per condition.', max: 60, step: 20,
+    drawer: { label: 'Sim · open drawer', lead: 'MolmoBot in the MolmoSpaces simulator, 106 trials per condition.', max: 60, step: 20,
       cats: ['ID', 'OOD\ntexture', 'OOD\nlighting', 'OOD\nprompt', 'Mean'],
-      series: [ { key: 'raft', vals: [46, 28, 41, 42, 39] }, { key: 'plain', vals: [29, 15, 36, 36, 29] }, { key: 'retain', vals: [39, 18, 35, 30, 30] },
+      series: [ { key: 'raft', vals: [44, 28, 42, 42, 39] }, { key: 'plain', vals: [29, 15, 36, 36, 29] }, { key: 'retain', vals: [39, 18, 35, 30, 30] },
                 { key: 'delock', vals: [43, 17, 24, 35, 30] }, { key: 'base', vals: [2, 2, 1, 0, 1] } ] }
   };
   function showResult(id) {
@@ -599,7 +599,7 @@
   // ---------------- reasoning modality (raw_tables, figure values) ----------------
   var mods = {
     drawer: { label: 'Open drawer', xTitle: 'ID success', yTitle: 'OOD-visual success', x0: 25, x1: 55, xs: 5, y0: 10, y1: 35, ys: 5,
-      pts: [ { n: 'Trace', x: 49.06, y: 23.58 }, { n: 'Bounding box', x: 46.23, y: 28.30, main: true }, { n: 'VQA', x: 44.34, y: 21.70, ly: 22 },
+      pts: [ { n: 'Trace', x: 49.06, y: 23.58 }, { n: 'Bounding box', x: 44.34, y: 28.30, main: true }, { n: 'VQA', x: 44.34, y: 21.70, ly: 22 },
              { n: 'Spatial', x: 38.68, y: 29.25 }, { n: 'All', x: 37.74, y: 21.70, ly: 22, main: true }, { n: 'Keypoints', x: 28.30, y: 19.81, lx: -12 },
              { n: 'Plain FT', x: 29.25, y: 15.09, ref: true, ly: 22 } ] },
     pick: { label: 'Pick and place', xTitle: 'ID success', yTitle: 'OOD-object success', x0: 86, x1: 97, xs: 1, y0: 32, y1: 48, ys: 2,
@@ -613,11 +613,11 @@
 
   // ---------------- RETAIN compatibility ----------------
   grouped(document.getElementById('retain-chart'), {
-    cats: ['ID', 'Lighting', 'Lighting +\ntextures', 'Full\ntexture', 'Overall'], max: 50, step: 10, height: 290, labelAll: true, dec: 1,
+    cats: ['ID', 'Lighting', 'Full\ntexture', 'Overall'], max: 50, step: 10, height: 290, labelAll: true, dec: 2,
     aria: 'Open-drawer success for RETAIN on Plain FT, RETAIN on RAFT and RAFT alone',
-    series: [ { key: 'rp', name: 'RETAIN on Plain FT', color: 'var(--s-plain)', vals: [39.6, 38.7, 12.3, 17.0, 26.9] },
-              { key: 'rr', name: 'RETAIN on RAFT', color: 'var(--s-retain)', vals: [41.5, 37.7, 22.6, 29.2, 32.8] },
-              { key: 'raft', name: 'RAFT alone', color: 'var(--s-raft)', vals: [44.3, 41.5, 28.3, 25.5, 34.9] } ] });
+    series: [ { key: 'rp', name: 'RETAIN on Plain FT', color: 'var(--s-plain)', vals: [39.62, 38.68, 16.98, 31.76] },
+              { key: 'rr', name: 'RETAIN on RAFT', color: 'var(--s-retain)', vals: [41.51, 37.74, 29.25, 36.16] },
+              { key: 'raft', name: 'RAFT alone', color: 'var(--s-raft)', vals: [44.34, 41.51, 28.30, 38.05] } ] });
 
   // ---------------- attention compare slider ----------------
   var att = { frame: 'f50', model: 'plainft' };
