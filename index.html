@@ -170,9 +170,8 @@
   <p class="authors"><span>Shresth Grover<sup>1</sup></span><span>Andrey Kolobov<sup>2</sup></span><span>Dhruv Shah<sup>1</sup></span></p>
   <p class="affils"><span><sup>1</sup>Princeton University</span><span><sup>2</sup>Microsoft Research</span></p>
   <div class="links">
-    <!-- TODO: link the paper and code once public -->
-    <span class="lbtn off" title="Coming soon"><svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6zM14 3v5h5"/></svg>Paper</span>
-    <span class="lbtn off" title="Coming soon"><svg viewBox="0 0 24 24"><path d="M8 6 2 12l6 6 1.4-1.4L4.8 12l4.6-4.6zm8 0-1.4 1.4 4.6 4.6-4.6 4.6L16 18l6-6z"/></svg>Code</span>
+    <a class="lbtn" href="https://arxiv.org/abs/2611.04368"><svg viewBox="0 0 24 24"><path d="M6 2h9l5 5v15H6zM14 3v5h5"/></svg>Paper</a>
+    <a class="lbtn" href="https://github.com/princeton-prism/RAFT"><svg viewBox="0 0 24 24"><path d="M8 6 2 12l6 6 1.4-1.4L4.8 12l4.6-4.6zm8 0-1.4 1.4 4.6 4.6-4.6 4.6L16 18l6-6z"/></svg>Code</a>
     <a class="lbtn" href="#rollouts"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>Videos</a>
     <a class="lbtn" href="#bibtex"><svg viewBox="0 0 24 24"><path d="M5 4h14v16H5zm3 4v2h8V8zm0 4v2h8v-2z"/></svg>BibTeX</a>
   </div>
@@ -248,7 +247,7 @@
 
     <h3>Broader reasoning data helps downstream</h3>
     <p class="just">Adding reasoning data from other scenes to Stage I lowers held-out reasoning loss and improves
-      downstream success at every demonstration budget.</p>
+      in-distribution success by 0.9&ndash;3.8 points at every demonstration budget (106 evaluation episodes per budget).</p>
     <div class="panel">
       <div class="stat-line"><span>Held-out reasoning loss: <b>0.62 &rarr; 0.29</b></span></div>
       <div class="chart" id="data-chart"></div>
@@ -264,7 +263,7 @@
 
     <h3>RAFT is compatible with RETAIN weight merging</h3>
     <p class="just">On Franka open drawer, using RAFT instead of plain fine-tuning as RETAIN's fine-tuned endpoint raises
-      pooled success from 31.76% to 36.16% over ID, lighting and full-texture trials (merging at &alpha; = 0.9, 106 trials per condition).</p>
+      pooled success from 30.50% to 36.16% over ID, OOD-light and OOD-texture trials (merging at &alpha; = 0.9, 106 trials per condition).</p>
     <div class="panel"><div class="chart" id="retain-chart"></div></div>
   </div>
 </section>
@@ -315,7 +314,7 @@
 <pre><code>@article{grover2026raft,
   title   = {RAFT: Reasoning-Aligned Fine-Tuning Improves Robustness of VLA Post-Training},
   author  = {Grover, Shresth and Kolobov, Andrey and Shah, Dhruv},
-  journal = {arXiv preprint},
+  journal = {arXiv preprint arXiv:2611.04368},
   year    = {2026}
 }</code></pre>
   </div>
@@ -589,12 +588,12 @@
   segmented(document.getElementById('stage-split'), stage.splits.map(function (s, i) { return { id: i, label: s }; }), 0, function (i) { hbars(document.getElementById('stage-chart'), stage, i); });
   hbars(document.getElementById('stage-chart'), stage, 0);
 
-  // ---------------- data scaling (raw_tables: downstream success across demonstration budgets) ----------------
+  // ---------------- data scaling (paper Fig. 11 middle: ID success after 5,000 Stage-II steps, 106 episodes) ----------------
   grouped(document.getElementById('data-chart'), {
-    cats: ['25.1% of demos', '48.5% of demos', '100% of demos'], catTitle: 'Demonstration budget', max: 100, step: 25, height: 300, labelAll: true, dec: 1,
-    aria: 'Downstream success for in-domain versus broad-mixture Stage-I data at three demonstration budgets',
-    series: [ { key: 'indomain', name: 'In-domain reasoning data', color: 'var(--s-plain)', vals: [42.0, 61.8, 86.8] },
-              { key: 'raft', name: 'Broad reasoning mixture', color: 'var(--s-raft)', vals: [46.6, 65.2, 91.9] } ] });
+    cats: ['25 demos', '50 demos', '106 demos'], catTitle: 'Demonstrations', max: 100, step: 25, height: 300, labelAll: true, dec: 1,
+    aria: 'In-distribution success for in-domain versus broad-mixture Stage-I data at three demonstration budgets',
+    series: [ { key: 'indomain', name: 'In-domain reasoning data', color: 'var(--s-plain)', vals: [42.45, 67.92, 95.28] },
+              { key: 'raft', name: 'Broad reasoning mixture', color: 'var(--s-raft)', vals: [46.23, 71.70, 96.23] } ] });
 
   // ---------------- reasoning modality (raw_tables, figure values) ----------------
   var mods = {
@@ -613,9 +612,9 @@
 
   // ---------------- RETAIN compatibility ----------------
   grouped(document.getElementById('retain-chart'), {
-    cats: ['ID', 'Lighting', 'Full\ntexture', 'Overall'], max: 50, step: 10, height: 290, labelAll: true, dec: 2,
+    cats: ['ID', 'OOD\nlight', 'OOD\ntexture', 'Overall'], max: 50, step: 10, height: 290, labelAll: true, dec: 2,
     aria: 'Open-drawer success for RETAIN on Plain FT, RETAIN on RAFT and RAFT alone',
-    series: [ { key: 'rp', name: 'RETAIN on Plain FT', color: 'var(--s-plain)', vals: [39.62, 38.68, 16.98, 31.76] },
+    series: [ { key: 'rp', name: 'RETAIN on Plain FT', color: 'var(--s-plain)', vals: [38.68, 34.91, 17.92, 30.50] },
               { key: 'rr', name: 'RETAIN on RAFT', color: 'var(--s-retain)', vals: [41.51, 37.74, 29.25, 36.16] },
               { key: 'raft', name: 'RAFT alone', color: 'var(--s-raft)', vals: [44.34, 41.51, 28.30, 38.05] } ] });
 
